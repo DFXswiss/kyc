@@ -1,0 +1,18 @@
+{
+    "_id": "0cc529a2-6466-4308-b0a9-00306dd5337c",
+    "name": "dev",
+    "default": false,
+    "sortNum": 20000,
+    "created": "2022-09-16T14:57:29.785Z",
+    "modified": "2022-09-16T14:57:44.154Z",
+    "data": [
+        {
+            "name": "url",
+            "value": "dev.kyc.dfx.swiss"
+        },
+        {
+            "name": "token",
+            "value": ""
+        }
+    ]
+}
