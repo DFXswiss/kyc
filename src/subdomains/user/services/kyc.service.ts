@@ -1,6 +1,7 @@
 import { ServiceUnavailableException } from '@nestjs/common';
-import { KycDocument } from 'src/integration/spider/dto/spider.dto';
+import { InitiateState, KycDocument, KycDocuments } from 'src/integration/spider/dto/spider.dto';
 import { SpiderService } from 'src/integration/spider/services/spider.service';
+import { DfxLogger } from 'src/shared/services/dfx-logger';
 import { UserService } from 'src/subdomains/user/services/user.service';
 import { KycDataDto } from '../api/dto/user-in.dto';
 import { UserInfoDto } from '../api/dto/user-out.dto';
@@ -8,6 +9,7 @@ import { KycStep, KycStepName, KycStepStatus } from '../entities/kyc-step.entity
 import { AccountType, User } from '../entities/user.entity';
 
 export class KycService {
+  private readonly logger = new DfxLogger(KycService);
   private readonly stepOrdersPerson = [KycStepName.USER_DATA, KycStepName.CHATBOT, KycStepName.ONLINE_ID];
 
   private readonly stepOrdersBusiness = [
@@ -80,8 +82,22 @@ export class KycService {
           : lastStep?.name ?? this.getStepOrders(user)[0];
 
       if (nextStep) {
-        user.nextStep(nextStep);
-        // TODO: initiate spider and add data to step
+        let sessionUrl;
+        let documentVersion;
+
+        const document = KycDocuments[nextStep];
+        if (document) {
+          const response = await this.spiderService.initiateKycDocumentVersion(user, document.ident);
+          if (response.state === InitiateState.INITIATED) {
+            sessionUrl = response.sessionUrl;
+            documentVersion = response.locators[0].version;
+          } else {
+            this.logger.error(`Error during initiation for ${nextStep} failed with state ${response.state}:`);
+            throw new ServiceUnavailableException(`Initiation for ${nextStep} failed with state ${response.state}`);
+          }
+        }
+
+        user.nextStep(nextStep, documentVersion, sessionUrl);
       } else {
         user.kycCompleted();
       }

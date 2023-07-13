@@ -8,6 +8,7 @@ import { AccountType, User } from 'src/subdomains/user/entities/user.entity';
 import {
   Customer,
   DocumentVersion,
+  InitiateResponse,
   KycContentType,
   KycDocument,
   KycDocumentState,
@@ -78,6 +79,10 @@ export class SpiderService {
     }
 
     return successful;
+  }
+
+  async initiateKycDocumentVersion(user: User, kycDocument: KycDocument): Promise<InitiateResponse> {
+    return this.spiderRegistry.get(user.mandator.reference).initiateIdentification(user.reference, false, kycDocument);
   }
 
   // --- HELPER METHODS --- //
