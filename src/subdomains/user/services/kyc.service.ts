@@ -42,11 +42,15 @@ export class KycService {
   async updateKycData(mandator: string, reference: string, data: KycDataDto): Promise<UserInfoDto> {
     const user = await this.userService.getOrThrow(mandator, reference);
 
+    const step = user.getPendingStepOrThrow(KycStepName.USER_DATA);
+
     // create spider customer
     const { customerId } = await this.spiderService.createCustomer(user, data);
     await this.spiderService.uploadInitialCustomerInfo(user, data);
 
+    // update user
     user.setData(customerId, data.accountType);
+    user.completeStep(step);
 
     return this.continueKycFor(user);
   }
@@ -57,6 +61,8 @@ export class KycService {
     file: Express.Multer.File,
   ): Promise<UserInfoDto> {
     const user = await this.userService.getOrThrow(mandator, reference);
+
+    const step = user.getPendingStepOrThrow(KycStepName.FILE_UPLOAD);
 
     const successful = await this.spiderService.uploadDocument(
       user,
@@ -69,7 +75,7 @@ export class KycService {
 
     if (!successful) throw new ServiceUnavailableException('Failed to upload file');
 
-    user.setIncorporationCertificate();
+    user.completeStep(step);
 
     return this.continueKycFor(user);
   }
