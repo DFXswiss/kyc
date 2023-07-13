@@ -4,8 +4,9 @@ import { Country } from 'src/subdomains/master-data/country/country.entity';
 import { CountryService } from 'src/subdomains/master-data/country/country.service';
 import { CountryDto } from 'src/subdomains/master-data/country/dto/country.dto';
 import { KycDataDto } from 'src/subdomains/user/api/dto/user-in.dto';
+import { KycStep } from 'src/subdomains/user/entities/kyc-step.entity';
 import { AccountType, User } from 'src/subdomains/user/entities/user.entity';
-import { Customer, Organization, SubmitResponse } from '../dto/spider.dto';
+import { Customer, DocumentVersion, KycDocuments, Organization, SubmitResponse } from '../dto/spider.dto';
 import { SpiderApiRegistry } from './spider-api.registry';
 
 @Injectable()
@@ -22,6 +23,12 @@ export class SpiderService {
     return data.accountType === AccountType.PERSONAL
       ? apiService.createPersonalCustomer(contract, customer)
       : apiService.createOrganizationCustomer(contract, customer, organization);
+  }
+
+  async getKycDocumentVersion(user: User, kycStep: KycStep): Promise<DocumentVersion> {
+    return this.spiderRegistry
+      .get(user.mandator.reference)
+      .getDocumentVersion(user.reference, KycDocuments[kycStep.name].document, kycStep.documentVersion);
   }
 
   // --- HELPER METHODS --- //

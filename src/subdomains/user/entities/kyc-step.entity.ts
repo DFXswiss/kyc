@@ -27,6 +27,9 @@ export class KycStep extends IEntity {
   status: KycStepStatus;
 
   @Column({ nullable: true })
+  documentVersion?: string;
+
+  @Column({ nullable: true })
   reference?: string;
 
   @Column({ nullable: true })
