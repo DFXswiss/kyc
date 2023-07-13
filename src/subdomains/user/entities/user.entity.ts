@@ -1,7 +1,7 @@
 import { IEntity } from 'src/shared/db/entity';
 import { Language } from 'src/subdomains/master-data/language/language.entity';
 import { Column, ManyToOne, OneToMany } from 'typeorm';
-import { KycStep, KycStepName } from './kyc-step.entity';
+import { KycStep, KycStepName, KycStepStatus } from './kyc-step.entity';
 import { Mandator } from './mandator.entity';
 
 export enum KycStatus {
@@ -55,6 +55,17 @@ export class User extends IEntity {
     return this;
   }
 
+  completeStep(kycStep: KycStep): this {
+    kycStep.complete();
+    return this;
+  }
+
+  failStep(kycStep: KycStep): this {
+    kycStep.fail();
+    if (!this.hasStepsInProgress) this.kycStatus == KycStatus.PAUSED;
+    return this;
+  }
+
   nextStep(kycStep: KycStepName): this {
     this.kycSteps.push(KycStep.create(kycStep, this));
     this.kycStatus = KycStatus.IN_PROGRESS;
@@ -74,5 +85,9 @@ export class User extends IEntity {
     if (!step) throw new Error(`Step ${name} not found for user ${this.id}`);
 
     return step;
+  }
+
+  hasStepsInProgress(): boolean {
+    return this.kycSteps.every((s) => s.status !== KycStepStatus.IN_PROGRESS);
   }
 }

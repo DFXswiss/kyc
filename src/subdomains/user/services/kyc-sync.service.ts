@@ -10,6 +10,7 @@ import { Util } from 'src/shared/utils/util';
 import { SettingService } from 'src/subdomains/master-data/setting/setting.service';
 import { KycStepName, KycStepStatus } from '../entities/kyc-step.entity';
 import { User } from '../entities/user.entity';
+import { KycService } from './kyc.service';
 import { MandatorService } from './mandator.service';
 import { UserService } from './user.service';
 
@@ -23,6 +24,7 @@ export class KycSyncService {
     private readonly mandatorService: MandatorService,
     private readonly settingService: SettingService,
     private readonly spiderService: SpiderService,
+    private readonly kycService: KycService,
   ) {}
 
   @Cron(CronExpression.EVERY_2_HOURS)
@@ -78,9 +80,9 @@ export class KycSyncService {
             kycDocumentVersion.state == KycDocumentState.FAILED ||
             this.documentAge(kycDocumentVersion) > Config.spider.failAfterDays
           ) {
-            // failed
+            await this.kycService.stepFailed(user, kycStep);
           } else if (kycDocumentVersion.state == KycDocumentState.COMPLETED) {
-            // completed
+            await this.kycService.stepCompleted(user, kycStep);
           }
         } catch (e) {
           this.logger.error(`Exception during KYC check for user ${user.id} in KYC step ${kycStep.id}:`, e);

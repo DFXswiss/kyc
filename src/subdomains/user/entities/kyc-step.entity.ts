@@ -46,4 +46,10 @@ export class KycStep extends IEntity {
 
     return this;
   }
+
+  fail(): this {
+    this.status = KycStepStatus.FAILED;
+
+    return this;
+  }
 }
