@@ -1,4 +1,4 @@
-import { ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { InitiateState, KycDocument, KycDocuments } from 'src/integration/spider/dto/spider.dto';
 import { SpiderService } from 'src/integration/spider/services/spider.service';
 import { DfxLogger } from 'src/shared/services/dfx-logger';
@@ -10,6 +10,7 @@ import { User } from '../entities/user.entity';
 import { KycStepName, KycStepStatus } from '../enums/kyc.enum';
 import { AccountType } from '../enums/user.enum';
 
+@Injectable()
 export class KycService {
   private readonly logger = new DfxLogger(KycService);
   private readonly stepOrdersPerson = [KycStepName.USER_DATA, KycStepName.CHATBOT, KycStepName.ONLINE_ID];
@@ -77,7 +78,7 @@ export class KycService {
 
   // --- HELPER METHODS --- //
   private async continueKycFor(user: User): Promise<UserInfoDto> {
-    if (!user.hasStepsInProgress()) {
+    if (!user.hasStepsInProgress) {
       const lastStep = this.getLastStep(user);
       const nextStep =
         lastStep?.status === KycStepStatus.COMPLETED

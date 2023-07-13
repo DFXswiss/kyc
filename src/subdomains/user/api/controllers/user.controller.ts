@@ -34,7 +34,7 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
   @ApiOkResponse({ type: UserInfoDto })
-  async updateUser(@GetJwt() { mandator, user }: JwtPayload, settings: SettingsDto): Promise<UserInfoDto> {
+  async updateUser(@GetJwt() { mandator, user }: JwtPayload, @Body() settings: SettingsDto): Promise<UserInfoDto> {
     return this.userService.updateSettings(mandator, user, settings);
   }
 

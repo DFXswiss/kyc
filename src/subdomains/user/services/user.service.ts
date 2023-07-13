@@ -68,6 +68,7 @@ export class UserService {
     const mandatorEntity = await this.mandatorService.getOrThrow(mandator);
     const languageEntity = await this.languageService.getBySymbolOrThrow(Config.defaultLanguage);
 
-    return User.create(reference, mandatorEntity, languageEntity);
+    const user = User.create(reference, mandatorEntity, languageEntity);
+    return this.repo.save(user);
   }
 }

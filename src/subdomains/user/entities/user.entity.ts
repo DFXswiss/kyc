@@ -26,12 +26,12 @@ export class User extends IEntity {
   @OneToMany(() => KycStep, (step) => step.user, { eager: true, cascade: true })
   kycSteps: KycStep[];
 
-  @ManyToOne(() => Language)
+  @ManyToOne(() => Language, { eager: true })
   language: Language;
 
   // --- FACTORY --- //
   static create(reference: string, mandator: Mandator, language: Language): User {
-    return Object.assign(new User(), { mandator, reference, language });
+    return Object.assign(new User(), { mandator, reference, language, kycSteps: [] });
   }
 
   // --- KYC PROCESS --- //
@@ -54,12 +54,15 @@ export class User extends IEntity {
 
   completeStep(kycStep: KycStep): this {
     kycStep.complete();
+
     return this;
   }
 
   failStep(kycStep: KycStep): this {
     kycStep.fail();
+
     if (!this.hasStepsInProgress) this.kycStatus == KycStatus.PAUSED;
+
     return this;
   }
 
@@ -84,7 +87,7 @@ export class User extends IEntity {
     return step;
   }
 
-  hasStepsInProgress(): boolean {
+  get hasStepsInProgress(): boolean {
     return this.kycSteps.some((s) => s.status == KycStepStatus.IN_PROGRESS);
   }
 }
