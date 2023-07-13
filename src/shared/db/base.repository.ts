@@ -1,7 +1,7 @@
-import { Repository } from 'typeorm';
+import { ObjectLiteral, Repository } from 'typeorm';
 import { Util } from '../utils/util';
 
-export abstract class BaseRepository<T> extends Repository<T> {
+export abstract class BaseRepository<T extends ObjectLiteral> extends Repository<T> {
   async saveMany(entities: T[], transactionSize = 1000, batchSize = 100): Promise<T[]> {
     return Util.doInBatchesAndJoin(entities, (batch) => this.saveBatch(batch, batchSize), transactionSize);
   }

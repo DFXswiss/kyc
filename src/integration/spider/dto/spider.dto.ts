@@ -170,7 +170,7 @@ export interface RiskResult {
 export interface CustomerBase {
   reference: string;
   type: string;
-  id?: number;
+  id: number;
   versionId?: number;
   datesOfBirth: { year: string; month: string; day: string }[];
   citizenships: string[];

@@ -33,16 +33,16 @@ export class SpiderApiService {
   ) {}
 
   // --- CUSTOMER --- //
-  async getCustomer(reference: string): Promise<Customer> {
+  async getCustomer(reference: string): Promise<Customer | null> {
     return this.callApi<Customer>(`customers/${reference}`);
   }
 
-  async getCustomerInfo(reference: string): Promise<CustomerInformationResponse> {
+  async getCustomerInfo(reference: string): Promise<CustomerInformationResponse | null> {
     return this.callApi<CustomerInformationResponse>(`customers/${reference}/information`);
   }
 
   async getChangedCustomers(modificationTime: number): Promise<string[]> {
-    return this.callApi<string[]>(`customers?modificationTime=${modificationTime}`);
+    return this.callApi<string[]>(`customers?modificationTime=${modificationTime}`).then((r) => r ?? []);
   }
 
   async createPersonalCustomer(contract: string, person: Partial<Customer>): Promise<SubmitResponse> {
@@ -56,7 +56,9 @@ export class SpiderApiService {
       ],
     };
 
-    return this.callApi<SubmitResponse[]>('customers/contract-linked-list', 'POST', [personData]).then((r) => r[0]);
+    return this.callApi<SubmitResponse[]>('customers/contract-linked-list', 'POST', [personData]).then(
+      (r: SubmitResponse[]) => r[0],
+    );
   }
 
   async createOrganizationCustomer(
@@ -79,7 +81,7 @@ export class SpiderApiService {
     return this.callApi<SubmitResponse[]>('customers/contract-linked-list', 'POST', [
       personData,
       organizationData,
-    ]).then((r) => r[0]);
+    ]).then((r: SubmitResponse[]) => r[0]);
   }
 
   async renameCustomerReference(oldReference: string, newReference: string): Promise<boolean> {
@@ -94,7 +96,7 @@ export class SpiderApiService {
 
   // --- NAME CHECK --- //
   async checkCustomer(reference: string): Promise<CheckResponse[]> {
-    return this.callApi<CheckResponse[]>('customers/check', 'POST', [reference]);
+    return this.callApi<CheckResponse[]>('customers/check', 'POST', [reference]).then((r) => r ?? []);
   }
 
   async getCheckResult(reference: string): Promise<RiskResult> {
@@ -108,12 +110,13 @@ export class SpiderApiService {
             `customers/checks/verifications/${customerInfo.lastCheckVerificationId}/result?detailed=true`,
           );
 
-    return { result: customerCheckResult.risks[0].categoryKey, risks: customerCheckResult.risks };
+    return { result: customerCheckResult?.risks[0].categoryKey, risks: customerCheckResult?.risks ?? [] };
   }
 
   // --- DOCUMENTS --- //
   async getDocumentInfos(reference: string): Promise<DocumentInfo[]> {
-    const { id: kycId } = await this.getCustomer(reference);
+    const customer = await this.getCustomer(reference);
+    if (!customer) throw new Error(`Customer ${reference} not found`);
 
     const documentList: DocumentInfo[] = [];
 
@@ -134,7 +137,7 @@ export class SpiderApiService {
             label: part.label,
             fileName: part.fileName,
             contentType: part.contentType,
-            url: this.getDocumentUrl(kycId, document, version.name, part.name),
+            url: this.getDocumentUrl(customer.id, document, version.name, part.name),
           })),
         );
       }
@@ -143,7 +146,7 @@ export class SpiderApiService {
     return documentList;
   }
 
-  async getDocuments(reference: string): Promise<KycDocument[]> {
+  async getDocuments(reference: string): Promise<KycDocument[] | null> {
     return this.callApi(`customers/${reference}/documents`);
   }
 
@@ -157,7 +160,7 @@ export class SpiderApiService {
     version: string,
     part: string,
     responseType?: ResponseType,
-  ): Promise<T> {
+  ): Promise<T | null> {
     return this.callApi<T>(
       `customers/${reference}/documents/${document}/versions/${version}/parts/${part}`,
       'GET',
@@ -167,10 +170,11 @@ export class SpiderApiService {
     );
   }
 
-  async getCompletedDocument<T>(reference: string, document: KycDocument, part: string): Promise<T> {
+  async getCompletedDocument<T>(reference: string, document: KycDocument, part: string): Promise<T | null> {
     const completedVersion = await this.findDocumentVersion(reference, document, KycDocumentState.COMPLETED);
+    if (!completedVersion) return null;
 
-    return this.getDocument(reference, document, completedVersion?.name, part);
+    return this.getDocument(reference, document, completedVersion.name, part);
   }
 
   async changeDocumentState(
@@ -188,11 +192,11 @@ export class SpiderApiService {
     return result === 'done';
   }
 
-  async getDocumentVersions(reference: string, document: KycDocument): Promise<DocumentVersion[]> {
+  async getDocumentVersions(reference: string, document: KycDocument): Promise<DocumentVersion[] | null> {
     return this.callApi<DocumentVersion[]>(`customers/${reference}/documents/${document}/versions`);
   }
 
-  async getDocumentVersion(reference: string, document: KycDocument, version: string): Promise<DocumentVersion> {
+  async getDocumentVersion(reference: string, document: KycDocument, version: string): Promise<DocumentVersion | null> {
     return this.callApi<DocumentVersion>(`customers/${reference}/documents/${document}/versions/${version}`);
   }
 
@@ -200,7 +204,7 @@ export class SpiderApiService {
     reference: string,
     document: KycDocument,
     state: KycDocumentState,
-  ): Promise<DocumentVersion> {
+  ): Promise<DocumentVersion | undefined> {
     return this.getDocumentVersions(reference, document).then((versions) => versions?.find((v) => v?.state === state));
   }
 
@@ -220,7 +224,7 @@ export class SpiderApiService {
     reference: string,
     document: KycDocument,
     version: string,
-  ): Promise<DocumentVersionPart[]> {
+  ): Promise<DocumentVersionPart[] | null> {
     return this.callApi<DocumentVersionPart[]>(
       `customers/${reference}/documents/${document}/versions/${version}/parts`,
     );
@@ -281,7 +285,9 @@ export class SpiderApiService {
       sendInvitation: sendMail,
     };
 
-    return this.callApi<InitiateResponse[]>(`customers/initiate-${identType}-sessions`, 'POST', data).then((r) => r[0]);
+    return this.callApi<InitiateResponse[]>(`customers/initiate-${identType}-sessions`, 'POST', data).then(
+      (r: InitiateResponse[]) => r[0],
+    );
   }
 
   // --- HELPER METHODS --- //
@@ -292,7 +298,7 @@ export class SpiderApiService {
     data?: any,
     contentType?: string,
     responseType?: ResponseType,
-  ): Promise<T> {
+  ): Promise<T | null> {
     return this.request<T>(url, method, data, contentType, responseType).catch((e: HttpError) => {
       if (e.response?.status === 404) {
         return null;

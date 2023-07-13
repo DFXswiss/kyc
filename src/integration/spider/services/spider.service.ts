@@ -18,14 +18,18 @@ export class SpiderService {
 
     const contract = this.contract(user.reference);
     const customer = await this.buildCustomer(user, data);
-    const organization = data.accountType !== AccountType.PERSONAL && (await this.buildOrganization(user, data));
 
-    return data.accountType === AccountType.PERSONAL
-      ? apiService.createPersonalCustomer(contract, customer)
-      : apiService.createOrganizationCustomer(contract, customer, organization);
+    if (data.accountType === AccountType.PERSONAL) {
+      return apiService.createPersonalCustomer(contract, customer);
+    } else {
+      const organization = await this.buildOrganization(user, data);
+      return apiService.createOrganizationCustomer(contract, customer, organization);
+    }
   }
 
-  async getKycDocumentVersion(user: User, kycStep: KycStep): Promise<DocumentVersion> {
+  async getKycDocumentVersion(user: User, kycStep: KycStep): Promise<DocumentVersion | null> {
+    if (!kycStep.documentVersion) throw new Error(`No document version for user ${user.id} and step ${kycStep.id}`);
+
     return this.spiderRegistry
       .get(user.mandator.reference)
       .getDocumentVersion(user.reference, KycDocuments[kycStep.name].document, kycStep.documentVersion);
