@@ -60,7 +60,7 @@ export class KycService {
 
   // --- HELPER METHODS --- //
   private async continueKycFor(user: User): Promise<UserInfoDto> {
-    if (user.hasStepsInProgress()) {
+    if (!user.hasStepsInProgress()) {
       const lastStep = this.getLastStep(user);
       const nextStep =
         lastStep?.status === KycStepStatus.COMPLETED

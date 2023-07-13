@@ -88,6 +88,6 @@ export class User extends IEntity {
   }
 
   hasStepsInProgress(): boolean {
-    return this.kycSteps.every((s) => s.status !== KycStepStatus.IN_PROGRESS);
+    return this.kycSteps.some((s) => s.status == KycStepStatus.IN_PROGRESS);
   }
 }
