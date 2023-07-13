@@ -18,7 +18,7 @@ export class UserService {
   ) {}
 
   // --- INTERNAL METHODS --- //
-  async get(mandator: string, reference: string): Promise<User | undefined> {
+  async get(mandator: string, reference: string): Promise<User | null> {
     return this.repo.findOneBy({ mandator: { reference: mandator }, reference });
   }
 
@@ -64,8 +64,8 @@ export class UserService {
   // --- HELPER METHODS --- //
 
   private async createUser(mandator: string, reference: string): Promise<User> {
-    const mandatorEntity = await this.mandatorService.get(mandator);
-    const languageEntity = await this.languageService.getBySymbol(Config.defaultLanguage);
+    const mandatorEntity = await this.mandatorService.getOrThrow(mandator);
+    const languageEntity = await this.languageService.getBySymbolOrThrow(Config.defaultLanguage);
 
     return User.create(reference, mandatorEntity, languageEntity);
   }

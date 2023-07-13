@@ -24,4 +24,11 @@ export class LanguageService {
   async getBySymbol(symbol: string): Promise<Language> {
     return this.repo.findOneBy({ symbol });
   }
+
+  async getBySymbolOrThrow(symbol: string): Promise<Language> {
+    const language = await this.getBySymbol(symbol);
+    if (!language) throw new NotFoundException('Language not found');
+
+    return language;
+  }
 }
