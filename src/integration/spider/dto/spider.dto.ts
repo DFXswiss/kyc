@@ -69,9 +69,9 @@ export enum RiskState {
 }
 
 export enum InitiateState {
-  INITIATED = 'Initiated',
-  FAILED = 'Failed',
-  REFERENCE_NOT_FOUND = 'ReferenceNotFound',
+  INITIATED = 'INITIATED',
+  FAILED = 'FAILED',
+  REFERENCE_NOT_FOUND = 'REFERENCE_NOT_FOUND',
 }
 
 export const KycDocuments: { [key: string]: { ident: KycDocument; document: KycDocument } } = {

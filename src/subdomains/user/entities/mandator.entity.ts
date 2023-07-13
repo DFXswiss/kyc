@@ -20,7 +20,7 @@ export class Mandator extends IEntity {
   @Column()
   password: string;
 
-  @Column()
+  @Column({ length: 'MAX' })
   allowedCountries: string;
 
   get allowedCountryIds(): number[] {
