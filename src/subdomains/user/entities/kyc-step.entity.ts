@@ -21,9 +21,30 @@ export class KycStep extends IEntity {
   @Column({ nullable: true })
   sessionUrl?: string;
 
+  @Column({ nullable: true })
+  setupUrl?: string;
+
+  @Column({ nullable: true })
+  sessionId?: string;
+
   // --- FACTORY --- //
-  static create(name: KycStepName, user: User, documentVersion?: string, sessionUrl?: string): KycStep {
-    return Object.assign(new KycStep(), { name, user, status: KycStepStatus.IN_PROGRESS, documentVersion, sessionUrl });
+  static create(
+    name: KycStepName,
+    user: User,
+    documentVersion?: string,
+    sessionUrl?: string,
+    setupUrl?: string,
+    sessionId?: string,
+  ): KycStep {
+    return Object.assign(new KycStep(), {
+      name,
+      user,
+      status: KycStepStatus.IN_PROGRESS,
+      documentVersion,
+      sessionUrl,
+      setupUrl,
+      sessionId,
+    });
   }
 
   // --- KYC PROCESS --- //

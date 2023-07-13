@@ -9,6 +9,7 @@ import { AccountType } from 'src/subdomains/user/enums/user.enum';
 import {
   Customer,
   DocumentVersion,
+  IdentificationLog,
   InitiateResponse,
   KycContentType,
   KycDocument,
@@ -179,6 +180,14 @@ export class SpiderService {
     );
   }
 
+  async getOnlineIdLog(user: User, version: string): Promise<IdentificationLog | undefined> {
+    return this.getApiService(user).getDocument<IdentificationLog>(
+      user.reference,
+      KycDocument.ONLINE_IDENTIFICATION,
+      version,
+      KycDocument.IDENTIFICATION_LOG,
+    );
+  }
   private reference(reference: string, isOrganization: boolean): string {
     return isOrganization ? `${reference}_organization` : reference;
   }
@@ -197,5 +206,9 @@ export class SpiderService {
 
   private getApiService(user: User) {
     return this.spiderRegistry.get(user.mandator.reference);
+  }
+
+  getOnlineIdUrl(identificationId: string): string {
+    return `https://go.${Config.spider.prefix}online-ident.ch/app/dfxauto/identifications/${identificationId}/identification/start`;
   }
 }
