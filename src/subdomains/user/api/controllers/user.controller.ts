@@ -1,39 +1,50 @@
-import { Body, Controller, Get, Post, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { GetJwt } from 'src/shared/auth/get-jwt.decorator';
 import { JwtPayload } from 'src/shared/auth/jwt-payload.interface';
 import { KycService } from '../../services/kyc.service';
-import { KycDataDto } from '../dto/kyc-in.dto';
-import { KycInfoDto } from '../dto/kyc-out.dto';
+import { UserService } from '../../services/user.service';
+import { KycDataDto, SettingsDto } from '../dto/user-in.dto';
+import { UserInfoDto } from '../dto/user-out.dto';
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(private readonly kycService: KycService) {}
+  constructor(private readonly userService: UserService, private readonly kycService: KycService) {}
 
+  // --- USER --- //
   @Get()
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
-  @ApiOkResponse({ type: KycInfoDto })
-  async getKycProgress(@GetJwt() { mandator, user }: JwtPayload): Promise<KycInfoDto> {
-    return this.kycService.getKycStatus(mandator, user);
+  @ApiOkResponse({ type: UserInfoDto })
+  async getUser(@GetJwt() { mandator, user }: JwtPayload): Promise<UserInfoDto> {
+    return this.userService.getOrCreate(mandator, user);
   }
 
-  @Post()
+  @Put()
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
-  @ApiCreatedResponse({ type: KycInfoDto })
-  async continueKyc(@GetJwt() { mandator, user }: JwtPayload): Promise<KycInfoDto> {
+  @ApiOkResponse({ type: UserInfoDto })
+  async updateUser(@GetJwt() { mandator, user }: JwtPayload, settings: SettingsDto): Promise<UserInfoDto> {
+    return this.userService.updateSettings(mandator, user, settings);
+  }
+
+  // --- KYC --- //
+  @Put('kyc')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  @ApiCreatedResponse({ type: UserInfoDto })
+  async continueKyc(@GetJwt() { mandator, user }: JwtPayload): Promise<UserInfoDto> {
     return this.kycService.continueKyc(mandator, user);
   }
 
   @Post('data')
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
-  @ApiCreatedResponse({ type: KycInfoDto })
-  async updateKycData(@GetJwt() { mandator, user }: JwtPayload, @Body() data: KycDataDto): Promise<KycInfoDto> {
+  @ApiCreatedResponse({ type: UserInfoDto })
+  async updateKycData(@GetJwt() { mandator, user }: JwtPayload, @Body() data: KycDataDto): Promise<UserInfoDto> {
     return this.kycService.updateKycData(mandator, user, data);
   }
 
@@ -45,7 +56,7 @@ export class UserController {
   async uploadIncorporationCertificate(
     @GetJwt() { mandator, user }: JwtPayload,
     @UploadedFiles() files: Express.Multer.File[],
-  ): Promise<KycInfoDto> {
+  ): Promise<UserInfoDto> {
     return this.kycService.uploadIncorporationCertificate(mandator, user, files[0]);
   }
 }

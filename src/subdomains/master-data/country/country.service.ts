@@ -4,17 +4,17 @@ import { Country } from './country.entity';
 
 @Injectable()
 export class CountryService {
-  constructor(private countryRepo: CountryRepository) {}
+  constructor(private repo: CountryRepository) {}
 
-  async getAllCountry(): Promise<Country[]> {
-    return this.countryRepo.find();
+  async getAll(): Promise<Country[]> {
+    return this.repo.find();
   }
 
-  async getCountry(id: number): Promise<Country> {
-    return this.countryRepo.findOneBy({ id });
+  async get(id: number): Promise<Country> {
+    return this.repo.findOneBy({ id });
   }
 
-  async getCountryWithSymbol(symbol: string): Promise<Country> {
-    return this.countryRepo.findOneBy({ symbol });
+  async getBySymbol(symbol: string): Promise<Country> {
+    return this.repo.findOneBy({ symbol });
   }
 }
