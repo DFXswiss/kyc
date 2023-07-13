@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { IEntity } from 'src/shared/db/entity';
 import { Language } from 'src/subdomains/master-data/language/language.entity';
 import { Column, Entity, Index, ManyToOne, OneToMany } from 'typeorm';
@@ -7,7 +8,7 @@ import { KycStep } from './kyc-step.entity';
 import { Mandator } from './mandator.entity';
 
 @Entity()
-@Index((user: User) => [user.mandator, user.reference], { unique: true })
+@Index((u: User) => [u.mandator, u.reference], { unique: true })
 export class User extends IEntity {
   @ManyToOne(() => Mandator, { nullable: false, eager: true })
   mandator: Mandator;
@@ -40,16 +41,6 @@ export class User extends IEntity {
     this.spiderReference = spiderReference;
     this.accountType = accountType;
 
-    const step = this.getPendingStepOrThrow(KycStepName.USER_DATA);
-    step.complete();
-
-    return this;
-  }
-
-  setIncorporationCertificate(): this {
-    const step = this.getPendingStepOrThrow(KycStepName.FILE_UPLOAD);
-    step.complete();
-
     return this;
   }
 
@@ -81,9 +72,9 @@ export class User extends IEntity {
   }
 
   // --- HELPERS --- //
-  private getPendingStepOrThrow(name: KycStepName): KycStep {
+  getPendingStepOrThrow(name: KycStepName): KycStep {
     const step = this.kycSteps.find((s) => s.name === name && s.status === KycStepStatus.IN_PROGRESS);
-    if (!step) throw new Error(`Step ${name} not found for user ${this.id}`);
+    if (!step) throw new BadRequestException(`Step ${name} not in progress`);
 
     return step;
   }
