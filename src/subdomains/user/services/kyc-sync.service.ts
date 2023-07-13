@@ -73,14 +73,15 @@ export class KycSyncService {
         try {
           const kycDocumentVersion = await this.spiderService.getKycDocumentVersion(user, kycStep);
 
-          if (kycDocumentVersion.state == KycDocumentState.COMPLETED) {
-          } // completed
-
           if (
+            !kycDocumentVersion ||
             kycDocumentVersion.state == KycDocumentState.FAILED ||
             this.documentAge(kycDocumentVersion) > Config.spider.failAfterDays
           ) {
-          } // failed
+            // failed
+          } else if (kycDocumentVersion.state == KycDocumentState.COMPLETED) {
+            // completed
+          }
         } catch (e) {
           this.logger.error(`Exception during KYC check for user ${user.id} in KYC step ${kycStep.id}:`, e);
         }

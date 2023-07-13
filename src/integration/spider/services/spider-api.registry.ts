@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { HttpService } from 'src/shared/services/http.service';
 import { Mandator } from 'src/subdomains/user/entities/mandator.entity';
 import { SpiderApiService } from './spider-api.service';
@@ -17,6 +17,9 @@ export class SpiderApiRegistry {
   }
 
   get(reference: string): SpiderApiService {
-    return this.services.get(reference);
+    const api = this.services.get(reference);
+    if (!api) throw new BadRequestException(`Invalid mandator ${reference}`);
+
+    return api;
   }
 }

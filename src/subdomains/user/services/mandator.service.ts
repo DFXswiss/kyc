@@ -11,7 +11,7 @@ export class MandatorService implements OnModuleInit {
     void this.initSpider();
   }
 
-  async get(reference: string): Promise<Mandator> {
+  async get(reference: string): Promise<Mandator | null> {
     return this.repo.findOneBy({ reference });
   }
 

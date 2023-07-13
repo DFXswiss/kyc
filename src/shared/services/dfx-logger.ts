@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
+import * as AppInsights from 'applicationinsights';
 import { TelemetryClient } from 'applicationinsights';
 import { SeverityLevel } from 'applicationinsights/out/Declarations/Contracts';
-import * as AppInsights from 'applicationinsights';
 
 export enum LogLevel {
   CRITICAL = 'Critical',
@@ -17,7 +17,7 @@ export class DfxLogger {
 
   constructor(context?: { name: string } | string) {
     this.context = typeof context === 'string' ? context : context?.name;
-    this.logger = new Logger(this.context);
+    this.logger = new Logger(this.context ?? '');
   }
 
   log(level: LogLevel, message: string, error?: Error) {

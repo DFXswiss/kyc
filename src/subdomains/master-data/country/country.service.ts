@@ -10,7 +10,7 @@ export class CountryService {
     return this.repo.find();
   }
 
-  async get(id: number): Promise<Country> {
+  async get(id: number): Promise<Country | null> {
     return this.repo.findOneBy({ id });
   }
 
@@ -21,7 +21,7 @@ export class CountryService {
     return country;
   }
 
-  async getBySymbol(symbol: string): Promise<Country> {
+  async getBySymbol(symbol: string): Promise<Country | null> {
     return this.repo.findOneBy({ symbol });
   }
 }
