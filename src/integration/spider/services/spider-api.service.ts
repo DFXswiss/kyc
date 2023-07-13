@@ -6,7 +6,6 @@ import {
   Challenge,
   CheckResponse,
   CheckResult,
-  CreateResponse,
   Customer,
   CustomerInformationResponse,
   DocumentInfo,
@@ -46,10 +45,7 @@ export class SpiderApiService {
     return this.callApi<string[]>(`customers?modificationTime=${modificationTime}`);
   }
 
-  async createPersonalCustomer(
-    contract: string,
-    person: Partial<Customer>,
-  ): Promise<SubmitResponse[] | CreateResponse> {
+  async createPersonalCustomer(contract: string, person: Partial<Customer>): Promise<SubmitResponse> {
     const personData = {
       contractReference: contract,
       customer: person,
@@ -60,14 +56,14 @@ export class SpiderApiService {
       ],
     };
 
-    return this.callApi<SubmitResponse[]>('customers/contract-linked-list', 'POST', [personData]);
+    return this.callApi<SubmitResponse[]>('customers/contract-linked-list', 'POST', [personData]).then((r) => r[0]);
   }
 
   async createOrganizationCustomer(
     contract: string,
     person: Partial<Customer>,
     organization: Partial<Organization>,
-  ): Promise<SubmitResponse[]> {
+  ): Promise<SubmitResponse> {
     const personData = {
       contractReference: contract,
       customer: person,
@@ -80,7 +76,10 @@ export class SpiderApiService {
       relationTypes: [KycRelationType.CONTRACTING_PARTNER],
     };
 
-    return this.callApi<SubmitResponse[]>('customers/contract-linked-list', 'POST', [personData, organizationData]);
+    return this.callApi<SubmitResponse[]>('customers/contract-linked-list', 'POST', [
+      personData,
+      organizationData,
+    ]).then((r) => r[0]);
   }
 
   async renameCustomerReference(oldReference: string, newReference: string): Promise<boolean> {

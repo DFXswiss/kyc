@@ -31,4 +31,11 @@ export class KycStep extends IEntity {
 
   @Column({ nullable: true })
   sessionUrl?: string;
+
+  // --- KYC PROCESS --- //
+  complete(): this {
+    this.status = KycStepStatus.COMPLETED;
+
+    return this;
+  }
 }
