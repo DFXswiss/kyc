@@ -1,6 +1,6 @@
 import { IEntity } from 'src/shared/db/entity';
 import { Language } from 'src/subdomains/master-data/language/language.entity';
-import { KycDataDto } from 'src/subdomains/user/api/dto/kyc-in.dto';
+import { KycDataDto } from 'src/subdomains/user/api/dto/user-in.dto';
 import { Column, ManyToOne, OneToMany } from 'typeorm';
 import { KycStep } from './kyc-step.entity';
 import { Mandator } from './mandator.entity';
@@ -41,8 +41,8 @@ export class User extends IEntity {
   language: Language;
 
   // --- FACTORY --- //
-  static create(mandator: Mandator, reference: string): User {
-    return Object.assign(new User(), { mandator, reference });
+  static create(reference: string, mandator: Mandator, language: Language): User {
+    return Object.assign(new User(), { mandator, reference, language });
   }
 
   // --- KYC PROCESS --- //

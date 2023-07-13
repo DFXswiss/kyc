@@ -4,17 +4,17 @@ import { Language } from './language.entity';
 
 @Injectable()
 export class LanguageService {
-  constructor(private languageRepo: LanguageRepository) {}
+  constructor(private repo: LanguageRepository) {}
 
-  async getAllLanguage(): Promise<Language[]> {
-    return this.languageRepo.find();
+  async getAll(): Promise<Language[]> {
+    return this.repo.find();
   }
 
-  async getLanguage(id: number): Promise<Language> {
-    return this.languageRepo.findOneBy({ id });
+  async get(id: number): Promise<Language> {
+    return this.repo.findOneBy({ id });
   }
 
-  async getLanguageBySymbol(symbol: string): Promise<Language> {
-    return this.languageRepo.findOneBy({ symbol });
+  async getBySymbol(symbol: string): Promise<Language> {
+    return this.repo.findOneBy({ symbol });
   }
 }

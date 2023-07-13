@@ -1,11 +1,29 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsEmail, IsEnum, IsNotEmpty, IsNotEmptyObject, IsString, ValidateIf, ValidateNested } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsNotEmptyObject,
+  IsOptional,
+  IsString,
+  ValidateIf,
+  ValidateNested,
+} from 'class-validator';
 import { EntityDto } from 'src/shared/dto/entity.dto';
 import { Util } from 'src/shared/utils/util';
 import { IsPhone } from 'src/shared/validators/phone.validator';
 import { CountryDto } from 'src/subdomains/master-data/country/dto/country.dto';
+import { LanguageDto } from 'src/subdomains/master-data/language/dto/language.dto';
 import { AccountType } from 'src/subdomains/user/entities/user.entity';
+
+export class SettingsDto {
+  @ApiProperty({ type: EntityDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => EntityDto)
+  language: LanguageDto;
+}
 
 export class AddressDto {
   @ApiProperty()
