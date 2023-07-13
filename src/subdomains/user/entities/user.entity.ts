@@ -1,11 +1,12 @@
 import { IEntity } from 'src/shared/db/entity';
 import { Language } from 'src/subdomains/master-data/language/language.entity';
-import { Column, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { KycStepName, KycStepStatus } from '../enums/kyc.enum';
+import { AccountType, KycStatus } from '../enums/user.enum';
 import { KycStep } from './kyc-step.entity';
-import { KycStepName, KycStepStatus } from './kyc.enum';
 import { Mandator } from './mandator.entity';
-import { AccountType, KycStatus } from './user.enum';
 
+@Entity()
 export class User extends IEntity {
   @ManyToOne(() => Mandator, { nullable: false, eager: true })
   mandator: Mandator;

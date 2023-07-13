@@ -15,7 +15,7 @@ import { Util } from 'src/shared/utils/util';
 import { IsPhone } from 'src/shared/validators/phone.validator';
 import { CountryDto } from 'src/subdomains/master-data/country/dto/country.dto';
 import { LanguageDto } from 'src/subdomains/master-data/language/dto/language.dto';
-import { AccountType } from '../../entities/user.enum';
+import { AccountType } from '../../enums/user.enum';
 
 export class SettingsDto {
   @ApiProperty({ type: EntityDto })

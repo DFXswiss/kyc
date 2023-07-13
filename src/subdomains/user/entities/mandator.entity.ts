@@ -1,7 +1,8 @@
 import { IEntity } from 'src/shared/db/entity';
 import { Country } from 'src/subdomains/master-data/country/country.entity';
-import { Column, Generated } from 'typeorm';
+import { Column, Entity, Generated } from 'typeorm';
 
+@Entity()
 export class Mandator extends IEntity {
   @Column({ unique: true })
   @Generated('uuid')
