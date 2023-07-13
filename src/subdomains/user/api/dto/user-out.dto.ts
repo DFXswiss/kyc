@@ -1,13 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { LanguageDto } from 'src/subdomains/master-data/language/dto/language.dto';
-import { KycStatus } from 'src/subdomains/user/entities/user.entity';
-import { KycStepName, KycStepStatus } from '../../entities/kyc-step.entity';
+import { KycStepName, KycStepStatus } from '../../entities/kyc.enum';
+import { KycStatus } from '../../entities/user.enum';
 
 export class KycStepDto {
-  @ApiProperty({ type: KycStepName })
+  @ApiProperty({ enum: KycStepName })
   name: KycStepName;
 
-  @ApiProperty({ type: KycStepStatus })
+  @ApiProperty({ enum: KycStepStatus })
   status: KycStepStatus;
 
   @ApiPropertyOptional()

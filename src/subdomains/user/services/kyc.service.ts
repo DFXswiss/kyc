@@ -5,8 +5,10 @@ import { DfxLogger } from 'src/shared/services/dfx-logger';
 import { UserService } from 'src/subdomains/user/services/user.service';
 import { KycDataDto } from '../api/dto/user-in.dto';
 import { UserInfoDto } from '../api/dto/user-out.dto';
-import { KycStep, KycStepName, KycStepStatus } from '../entities/kyc-step.entity';
-import { AccountType, User } from '../entities/user.entity';
+import { KycStep } from '../entities/kyc-step.entity';
+import { KycStepName, KycStepStatus } from '../entities/kyc.enum';
+import { User } from '../entities/user.entity';
+import { AccountType } from '../entities/user.enum';
 
 export class KycService {
   private readonly logger = new DfxLogger(KycService);

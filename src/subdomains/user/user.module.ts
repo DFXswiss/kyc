@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { IntegrationModule } from 'src/integration/integration.module';
+import { SharedModule } from 'src/shared/shared.module';
+import { MasterDataModule } from '../master-data/master-data.module';
 import { UserController } from './api/controllers/user.controller';
 import { KycStep } from './entities/kyc-step.entity';
 import { Mandator } from './entities/mandator.entity';
@@ -13,7 +15,7 @@ import { MandatorService } from './services/mandator.service';
 import { UserService } from './services/user.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Mandator, User, KycStep]), IntegrationModule],
+  imports: [TypeOrmModule.forFeature([Mandator, User, KycStep]), SharedModule, IntegrationModule, MasterDataModule],
   controllers: [UserController],
   providers: [MandatorRepository, UserRepository, MandatorService, UserService, KycService, KycSyncService],
 })

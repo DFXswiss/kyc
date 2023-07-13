@@ -8,7 +8,7 @@ import { DfxLogger } from 'src/shared/services/dfx-logger';
 import { Lock } from 'src/shared/utils/lock';
 import { Util } from 'src/shared/utils/util';
 import { SettingService } from 'src/subdomains/master-data/setting/setting.service';
-import { KycStepName, KycStepStatus } from '../entities/kyc-step.entity';
+import { KycStepName, KycStepStatus } from '../entities/kyc.enum';
 import { User } from '../entities/user.entity';
 import { KycService } from './kyc.service';
 import { MandatorService } from './mandator.service';

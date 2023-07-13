@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CountryController } from './country/country.controller';
 import { Country } from './country/country.entity';
 import { CountryRepository } from './country/country.repository';
 import { CountryService } from './country/country.service';
@@ -14,7 +13,7 @@ import { SettingService } from './setting/setting.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Country, Language, Setting])],
-  controllers: [CountryController, LanguageController],
+  controllers: [LanguageController],
   providers: [
     CountryRepository,
     LanguageRepository,
