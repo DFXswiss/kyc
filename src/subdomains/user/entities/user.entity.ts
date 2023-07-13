@@ -1,6 +1,6 @@
 import { IEntity } from 'src/shared/db/entity';
-import { KycDataDto } from 'src/subdomains/kyc/api/dto/kyc-in.dto';
 import { Language } from 'src/subdomains/master-data/language/language.entity';
+import { KycDataDto } from 'src/subdomains/user/api/dto/kyc-in.dto';
 import { Column, ManyToOne, OneToMany } from 'typeorm';
 import { KycStep } from './kyc-step.entity';
 import { Mandator } from './mandator.entity';
