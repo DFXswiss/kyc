@@ -33,11 +33,11 @@ export class SpiderApiService {
   ) {}
 
   // --- CUSTOMER --- //
-  async getCustomer(reference: string): Promise<Customer | null> {
+  async getCustomer(reference: string): Promise<Customer | undefined> {
     return this.callApi<Customer>(`customers/${reference}`);
   }
 
-  async getCustomerInfo(reference: string): Promise<CustomerInformationResponse | null> {
+  async getCustomerInfo(reference: string): Promise<CustomerInformationResponse | undefined> {
     return this.callApi<CustomerInformationResponse>(`customers/${reference}/information`);
   }
 
@@ -146,7 +146,7 @@ export class SpiderApiService {
     return documentList;
   }
 
-  async getDocuments(reference: string): Promise<KycDocument[] | null> {
+  async getDocuments(reference: string): Promise<KycDocument[] | undefined> {
     return this.callApi(`customers/${reference}/documents`);
   }
 
@@ -160,7 +160,7 @@ export class SpiderApiService {
     version: string,
     part: string,
     responseType?: ResponseType,
-  ): Promise<T | null> {
+  ): Promise<T | undefined> {
     return this.callApi<T>(
       `customers/${reference}/documents/${document}/versions/${version}/parts/${part}`,
       'GET',
@@ -170,9 +170,9 @@ export class SpiderApiService {
     );
   }
 
-  async getCompletedDocument<T>(reference: string, document: KycDocument, part: string): Promise<T | null> {
+  async getCompletedDocument<T>(reference: string, document: KycDocument, part: string): Promise<T | undefined> {
     const completedVersion = await this.findDocumentVersion(reference, document, KycDocumentState.COMPLETED);
-    if (!completedVersion) return null;
+    if (!completedVersion) return undefined;
 
     return this.getDocument(reference, document, completedVersion.name, part);
   }
@@ -192,11 +192,15 @@ export class SpiderApiService {
     return result === 'done';
   }
 
-  async getDocumentVersions(reference: string, document: KycDocument): Promise<DocumentVersion[] | null> {
+  async getDocumentVersions(reference: string, document: KycDocument): Promise<DocumentVersion[] | undefined> {
     return this.callApi<DocumentVersion[]>(`customers/${reference}/documents/${document}/versions`);
   }
 
-  async getDocumentVersion(reference: string, document: KycDocument, version: string): Promise<DocumentVersion | null> {
+  async getDocumentVersion(
+    reference: string,
+    document: KycDocument,
+    version: string,
+  ): Promise<DocumentVersion | undefined> {
     return this.callApi<DocumentVersion>(`customers/${reference}/documents/${document}/versions/${version}`);
   }
 
@@ -224,7 +228,7 @@ export class SpiderApiService {
     reference: string,
     document: KycDocument,
     version: string,
-  ): Promise<DocumentVersionPart[] | null> {
+  ): Promise<DocumentVersionPart[] | undefined> {
     return this.callApi<DocumentVersionPart[]>(
       `customers/${reference}/documents/${document}/versions/${version}/parts`,
     );
@@ -298,10 +302,10 @@ export class SpiderApiService {
     data?: any,
     contentType?: string,
     responseType?: ResponseType,
-  ): Promise<T | null> {
+  ): Promise<T | undefined> {
     return this.request<T>(url, method, data, contentType, responseType).catch((e: HttpError) => {
       if (e.response?.status === 404) {
-        return null;
+        return undefined;
       }
 
       throw new ServiceUnavailableException(e.response);
