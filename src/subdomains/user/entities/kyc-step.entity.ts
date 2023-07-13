@@ -11,7 +11,9 @@ export enum KycStepName {
 }
 
 export enum KycStepStatus {
-  NA = 'NA',
+  IN_PROGRESS = 'InProgress',
+  FAILED = 'Failed',
+  COMPLETED = 'Completed',
 }
 
 export class KycStep extends IEntity {
@@ -26,9 +28,6 @@ export class KycStep extends IEntity {
 
   @Column({ nullable: true })
   reference?: string;
-
-  @Column({ nullable: true })
-  setupUrl?: string;
 
   @Column({ nullable: true })
   sessionUrl?: string;
