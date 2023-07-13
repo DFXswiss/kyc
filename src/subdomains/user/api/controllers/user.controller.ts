@@ -8,9 +8,9 @@ import { KycService } from '../../services/kyc.service';
 import { KycDataDto } from '../dto/kyc-in.dto';
 import { KycInfoDto } from '../dto/kyc-out.dto';
 
-@ApiTags('KYC')
-@Controller('kyc')
-export class KycController {
+@ApiTags('User')
+@Controller('user')
+export class UserController {
   constructor(private readonly kycService: KycService) {}
 
   @Get()
