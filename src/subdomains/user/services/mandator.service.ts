@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { SpiderApiRegistry } from 'src/integration/spider/services/spider-api.registry';
+import { Mandator } from '../entities/mandator.entity';
 import { MandatorRepository } from '../repositories/mandator.repository';
 
 @Injectable()
@@ -8,6 +9,10 @@ export class MandatorService implements OnModuleInit {
 
   onModuleInit() {
     void this.initSpider();
+  }
+
+  async get(reference: string): Promise<Mandator> {
+    return this.repo.findOneBy({ reference });
   }
 
   // --- HELPER METHODS --- //

@@ -9,4 +9,8 @@ export class UserService {
   async get(mandator: string, reference: string): Promise<User | undefined> {
     return this.repo.findOneBy({ mandator: { reference: mandator }, reference });
   }
+
+  async update(user: User): Promise<User> {
+    return this.repo.save(user);
+  }
 }

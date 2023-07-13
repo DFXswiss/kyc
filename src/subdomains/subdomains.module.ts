@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
+import { KycModule } from './kyc/kyc.module';
 import { MasterDataModule } from './master-data/master-data.module';
 import { UserModule } from './user/user.module';
 
 @Module({
-  imports: [UserModule, MasterDataModule],
+  imports: [UserModule, KycModule, MasterDataModule],
   controllers: [],
   providers: [],
-  exports: [UserModule, MasterDataModule],
+  exports: [UserModule, KycModule, MasterDataModule],
 })
 export class SubdomainsModule {}

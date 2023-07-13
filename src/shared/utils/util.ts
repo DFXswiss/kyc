@@ -1,3 +1,4 @@
+import { TransformFnParams } from 'class-transformer';
 import * as crypto from 'crypto';
 import { BinaryLike, createHash, createSign, KeyLike } from 'crypto';
 import { readFile } from 'fs';
@@ -276,5 +277,9 @@ export class Util {
 
       throw e;
     }
+  }
+
+  static trim({ value }: TransformFnParams): string {
+    return value.split(' ').join('');
   }
 }
