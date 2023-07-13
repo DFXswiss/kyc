@@ -8,11 +8,21 @@ import { LanguageController } from './language/language.controller';
 import { Language } from './language/language.entity';
 import { LanguageRepository } from './language/language.repository';
 import { LanguageService } from './language/language.service';
+import { Setting } from './setting/setting.entity';
+import { SettingRepository } from './setting/setting.repository';
+import { SettingService } from './setting/setting.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Country, Language])],
+  imports: [TypeOrmModule.forFeature([Country, Language, Setting])],
   controllers: [CountryController, LanguageController],
-  providers: [CountryRepository, LanguageRepository, CountryService, LanguageService],
-  exports: [CountryService, LanguageService],
+  providers: [
+    CountryRepository,
+    LanguageRepository,
+    SettingRepository,
+    CountryService,
+    LanguageService,
+    SettingService,
+  ],
+  exports: [CountryService, LanguageService, SettingService],
 })
 export class MasterDataModule {}

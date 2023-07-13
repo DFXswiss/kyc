@@ -55,6 +55,19 @@ export class User extends IEntity {
     return this;
   }
 
+  nextStep(kycStep: KycStepName): this {
+    this.kycSteps.push(KycStep.create(kycStep, this));
+    this.kycStatus = KycStatus.IN_PROGRESS;
+
+    return this;
+  }
+
+  kycCompleted(): this {
+    this.kycStatus = KycStatus.COMPLETED;
+
+    return this;
+  }
+
   // --- HELPERS --- //
   private getStepOrThrow(name: KycStepName): KycStep {
     const step = this.kycSteps.find((s) => s.name === name);
