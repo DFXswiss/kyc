@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { LanguageDto } from 'src/subdomains/master-data/language/dto/language.dto';
-import { KycStepName, KycStepStatus } from '../../entities/kyc.enum';
-import { KycStatus } from '../../entities/user.enum';
+import { KycStepName, KycStepStatus } from '../../enums/kyc.enum';
+import { KycStatus } from '../../enums/user.enum';
 
 export class KycStepDto {
   @ApiProperty({ enum: KycStepName })

@@ -1,8 +1,9 @@
 import { IEntity } from 'src/shared/db/entity';
-import { Column, ManyToOne } from 'typeorm';
-import { KycStepName, KycStepStatus } from './kyc.enum';
+import { Column, Entity, ManyToOne } from 'typeorm';
+import { KycStepName, KycStepStatus } from '../enums/kyc.enum';
 import { User } from './user.entity';
 
+@Entity()
 export class KycStep extends IEntity {
   @ManyToOne(() => User, (user) => user.kycSteps, { nullable: false })
   user: User;

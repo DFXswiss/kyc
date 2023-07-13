@@ -5,7 +5,7 @@ import { CountryService } from 'src/subdomains/master-data/country/country.servi
 import { CountryDto } from 'src/subdomains/master-data/country/dto/country.dto';
 import { KycDataDto } from 'src/subdomains/user/api/dto/user-in.dto';
 import { User } from 'src/subdomains/user/entities/user.entity';
-import { AccountType } from 'src/subdomains/user/entities/user.enum';
+import { AccountType } from 'src/subdomains/user/enums/user.enum';
 import {
   Customer,
   DocumentVersion,

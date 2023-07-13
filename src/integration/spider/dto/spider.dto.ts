@@ -1,4 +1,4 @@
-import { KycStepName } from 'src/subdomains/user/entities/kyc.enum';
+import { KycStepName } from 'src/subdomains/user/enums/kyc.enum';
 
 export enum KycContentType {
   PNG = 'image/png',
