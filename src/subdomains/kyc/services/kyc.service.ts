@@ -9,6 +9,7 @@ import { KycInfoMapper } from '../api/mappers/kyc-info.mapper';
 export class KycService {
   constructor(private readonly mandatorService: MandatorService, private readonly userService: UserService) {}
 
+  // --- USER API --- //
   async getKycStatus(mandator: string, reference: string): Promise<KycInfoDto> {
     const user = (await this.userService.get(mandator, reference)) ?? (await this.createUser(mandator, reference));
 
@@ -46,6 +47,10 @@ export class KycService {
 
     return this.saveAndMap(user);
   }
+
+  // --- SPIDER SYNC --- //
+
+  // TODO
 
   // --- HELPER METHODS --- //
   private async findUserOrThrow(mandator: string, reference: string): Promise<User> {

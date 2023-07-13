@@ -66,6 +66,12 @@ export enum RiskState {
   C = 'c',
 }
 
+export enum InitiateState {
+  INITIATED = 'Initiated',
+  FAILED = 'Failed',
+  REFERENCE_NOT_FOUND = 'ReferenceNotFound',
+}
+
 export interface SubmitResponse {
   customerReference: string;
   customerId: number;
@@ -93,7 +99,7 @@ export interface CreateResponse {
 }
 
 export interface InitiateResponse {
-  document: string;
+  state: InitiateState;
   reference: string;
   sessionUrl: string;
 

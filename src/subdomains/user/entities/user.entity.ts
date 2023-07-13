@@ -7,6 +7,9 @@ import { Mandator } from './mandator.entity';
 
 export enum KycStatus {
   NA = 'NA',
+  IN_PROGRESS = 'InProgress',
+  COMPLETED = 'Completed',
+  PAUSED = 'Paused',
 }
 
 export enum AccountType {
