@@ -4,7 +4,6 @@ import { Country } from 'src/subdomains/master-data/country/country.entity';
 import { CountryService } from 'src/subdomains/master-data/country/country.service';
 import { CountryDto } from 'src/subdomains/master-data/country/dto/country.dto';
 import { KycDataDto } from 'src/subdomains/user/api/dto/user-in.dto';
-import { KycStep } from 'src/subdomains/user/entities/kyc-step.entity';
 import { AccountType, User } from 'src/subdomains/user/entities/user.entity';
 import {
   Customer,
@@ -13,7 +12,6 @@ import {
   KycContentType,
   KycDocument,
   KycDocumentState,
-  KycDocuments,
   Organization,
   SubmitResponse,
 } from '../dto/spider.dto';
@@ -39,14 +37,12 @@ export class SpiderService {
     }
   }
 
-  async getKycDocumentVersion(user: User, kycStep: KycStep): Promise<DocumentVersion | undefined> {
-    if (!kycStep.documentVersion) throw new Error(`No document version for user ${user.id} and step ${kycStep.id}`);
-
-    return this.getApiService(user).getDocumentVersion(
-      this.reference(user.reference, false),
-      KycDocuments[kycStep.name].document,
-      kycStep.documentVersion,
-    );
+  async getKycDocumentVersion(
+    user: User,
+    document: KycDocument,
+    version: string,
+  ): Promise<DocumentVersion | undefined> {
+    return this.getApiService(user).getDocumentVersion(this.reference(user.reference, false), document, version);
   }
 
   async uploadDocument(

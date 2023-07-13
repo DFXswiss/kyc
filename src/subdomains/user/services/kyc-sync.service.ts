@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Config } from 'src/config/config';
-import { DocumentVersion, KycDocumentState } from 'src/integration/spider/dto/spider.dto';
+import { DocumentVersion, KycDocumentState, KycDocuments } from 'src/integration/spider/dto/spider.dto';
 import { SpiderApiRegistry } from 'src/integration/spider/services/spider-api.registry';
 import { SpiderService } from 'src/integration/spider/services/spider.service';
 import { DfxLogger } from 'src/shared/services/dfx-logger';
@@ -73,7 +73,13 @@ export class KycSyncService {
 
       for (const kycStep of kycSteps) {
         try {
-          const kycDocumentVersion = await this.spiderService.getKycDocumentVersion(user, kycStep);
+          const document = KycDocuments[kycStep.name].document;
+          const version = kycStep.documentVersion;
+
+          if (!document || !version)
+            throw new Error(`No matching document version for user ${user.id} and step ${kycStep.id}`);
+
+          const kycDocumentVersion = await this.spiderService.getKycDocumentVersion(user, document, version);
 
           if (
             !kycDocumentVersion ||
