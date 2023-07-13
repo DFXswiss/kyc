@@ -12,6 +12,12 @@ export class KycStepDto {
 
   @ApiPropertyOptional()
   sessionUrl?: string;
+
+  @ApiPropertyOptional()
+  setupUrl?: string;
+
+  @ApiPropertyOptional()
+  sessionId?: string;
 }
 
 export class UserInfoDto {

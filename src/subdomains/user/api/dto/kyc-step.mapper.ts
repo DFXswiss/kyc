@@ -10,6 +10,8 @@ export class KycStepMapper {
       name: kycStep.name,
       status: kycStep.status,
       sessionUrl: kycStep.sessionUrl,
+      setupUrl: kycStep.setupUrl,
+      sessionId: kycStep.sessionId,
     };
 
     return Object.assign(new KycStepDto(), dto);
