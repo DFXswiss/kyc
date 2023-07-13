@@ -5,7 +5,8 @@ import { In } from 'typeorm';
 import { SettingsDto } from '../api/dto/user-in.dto';
 import { UserInfoMapper } from '../api/dto/user-info.mapper';
 import { UserInfoDto } from '../api/dto/user-out.dto';
-import { KycStatus, User } from '../entities/user.entity';
+import { User } from '../entities/user.entity';
+import { KycStatus } from '../entities/user.enum';
 import { UserRepository } from '../repositories/user.repository';
 import { MandatorService } from './mandator.service';
 

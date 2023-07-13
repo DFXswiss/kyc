@@ -1,21 +1,10 @@
 import { IEntity } from 'src/shared/db/entity';
 import { Language } from 'src/subdomains/master-data/language/language.entity';
 import { Column, ManyToOne, OneToMany } from 'typeorm';
-import { KycStep, KycStepName, KycStepStatus } from './kyc-step.entity';
+import { KycStep } from './kyc-step.entity';
+import { KycStepName, KycStepStatus } from './kyc.enum';
 import { Mandator } from './mandator.entity';
-
-export enum KycStatus {
-  NA = 'NA',
-  IN_PROGRESS = 'InProgress',
-  COMPLETED = 'Completed',
-  PAUSED = 'Paused',
-}
-
-export enum AccountType {
-  PERSONAL = 'Personal',
-  BUSINESS = 'Business',
-  SOLE_PROPRIETORSHIP = 'SoleProprietorship',
-}
+import { AccountType, KycStatus } from './user.enum';
 
 export class User extends IEntity {
   @ManyToOne(() => Mandator, { nullable: false, eager: true })
