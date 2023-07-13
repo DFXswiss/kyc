@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { Config, Process } from 'src/config/config';
 import { SpiderApiRegistry } from 'src/integration/spider/services/spider-api.registry';
 import { Lock } from 'src/shared/utils/lock';
 import { Util } from 'src/shared/utils/util';
@@ -22,6 +23,8 @@ export class KycSyncService {
   @Cron(CronExpression.EVERY_2_HOURS)
   @Lock()
   async checkOngoingKyc() {
+    if (Config.processDisabled(Process.SPIDER_SYNC)) return;
+
     const usersInProgress = await this.userService.getInProgress();
     await this.syncKycUsers(usersInProgress);
   }
@@ -29,6 +32,8 @@ export class KycSyncService {
   @Cron(CronExpression.EVERY_5_MINUTES)
   @Lock(7200)
   async continuousSync() {
+    if (Config.processDisabled(Process.SPIDER_SYNC)) return;
+
     const settingKey = 'spiderModificationDate';
     const lastModificationTime = await this.settingService.get(settingKey);
     const newModificationTime = Date.now().toString();
@@ -41,6 +46,8 @@ export class KycSyncService {
   @Cron(CronExpression.EVERY_DAY_AT_4AM)
   @Lock()
   async dailySync() {
+    if (Config.processDisabled(Process.SPIDER_SYNC)) return;
+
     const modificationDate = Util.daysBefore(1);
     await this.syncKycData(modificationDate.getTime());
   }
