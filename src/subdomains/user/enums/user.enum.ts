@@ -1,5 +1,5 @@
 export enum KycStatus {
-  NA = 'NA',
+  NOT_STARTED = 'NotStarted',
   IN_PROGRESS = 'InProgress',
   COMPLETED = 'Completed',
   PAUSED = 'Paused',

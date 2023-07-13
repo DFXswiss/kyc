@@ -1,4 +1,7 @@
 import { KycStep } from '../../entities/kyc-step.entity';
+import { User } from '../../entities/user.entity';
+import { KycStepStatus } from '../../enums/kyc.enum';
+import { KycService } from '../../services/kyc.service';
 import { KycStepDto } from './user-out.dto';
 
 export class KycStepMapper {
@@ -12,7 +15,11 @@ export class KycStepMapper {
     return Object.assign(new KycStepDto(), dto);
   }
 
-  static entitiesToDto(kycSteps: KycStep[]): KycStepDto[] {
-    return kycSteps.map(KycStepMapper.entityToDto);
+  static entitiesToDto(user: User): KycStepDto[] {
+    const steps = user.kycSteps.map(KycStepMapper.entityToDto);
+    const naSteps = KycService.getSteps(user)
+      .filter((step) => !steps.some((s) => s.name === step))
+      .map((s) => ({ name: s, status: KycStepStatus.NOT_STARTED }));
+    return steps.concat(naSteps);
   }
 }
