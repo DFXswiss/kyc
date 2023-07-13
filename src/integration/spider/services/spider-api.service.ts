@@ -168,7 +168,7 @@ export class SpiderApiService {
   }
 
   async getCompletedDocument<T>(reference: string, document: KycDocument, part: string): Promise<T> {
-    const completedVersion = await this.getDocumentVersion(reference, document, KycDocumentState.COMPLETED);
+    const completedVersion = await this.findDocumentVersion(reference, document, KycDocumentState.COMPLETED);
 
     return this.getDocument(reference, document, completedVersion?.name, part);
   }
@@ -192,7 +192,11 @@ export class SpiderApiService {
     return this.callApi<DocumentVersion[]>(`customers/${reference}/documents/${document}/versions`);
   }
 
-  async getDocumentVersion(
+  async getDocumentVersion(reference: string, document: KycDocument, version: string): Promise<DocumentVersion> {
+    return this.callApi<DocumentVersion>(`customers/${reference}/documents/${document}/versions/${version}`);
+  }
+
+  async findDocumentVersion(
     reference: string,
     document: KycDocument,
     state: KycDocumentState,

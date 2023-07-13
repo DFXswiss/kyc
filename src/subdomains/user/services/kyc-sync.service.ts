@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { Config } from 'src/config/config';
+import { DocumentVersion, KycDocumentState } from 'src/integration/spider/dto/spider.dto';
 import { SpiderApiRegistry } from 'src/integration/spider/services/spider-api.registry';
+import { SpiderService } from 'src/integration/spider/services/spider.service';
 import { DfxLogger } from 'src/shared/services/dfx-logger';
 import { Lock } from 'src/shared/utils/lock';
 import { Util } from 'src/shared/utils/util';
@@ -19,6 +22,7 @@ export class KycSyncService {
     private readonly spiderApiRegistry: SpiderApiRegistry,
     private readonly mandatorService: MandatorService,
     private readonly settingService: SettingService,
+    private readonly spiderService: SpiderService,
   ) {}
 
   @Cron(CronExpression.EVERY_2_HOURS)
@@ -67,11 +71,25 @@ export class KycSyncService {
 
       for (const kycStep of kycSteps) {
         try {
-          //kyc service
+          const kycDocumentVersion = await this.spiderService.getKycDocumentVersion(user, kycStep);
+
+          if (kycDocumentVersion.state == KycDocumentState.COMPLETED) {
+          } // completed
+
+          if (
+            kycDocumentVersion.state == KycDocumentState.FAILED ||
+            this.documentAge(kycDocumentVersion) > Config.spider.failAfterDays
+          ) {
+          } // failed
         } catch (e) {
           this.logger.error(`Exception during KYC check for user ${user.id} in KYC step ${kycStep.id}:`, e);
         }
       }
     }
+  }
+
+  // --- HELPER METHODS --- //
+  documentAge(version: DocumentVersion) {
+    return Util.daysDiff(new Date(version.creationTime), new Date());
   }
 }

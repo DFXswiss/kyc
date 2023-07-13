@@ -1,3 +1,5 @@
+import { KycStepName } from 'src/subdomains/user/entities/kyc-step.entity';
+
 export enum KycContentType {
   PNG = 'image/png',
   JPEG = 'image/jpeg',
@@ -71,6 +73,21 @@ export enum InitiateState {
   FAILED = 'Failed',
   REFERENCE_NOT_FOUND = 'ReferenceNotFound',
 }
+
+export const KycDocuments: { [key: string]: { ident: KycDocument; document: KycDocument } } = {
+  [KycStepName.CHATBOT]: {
+    ident: KycDocument.INITIATE_CHATBOT_IDENTIFICATION,
+    document: KycDocument.CHATBOT,
+  },
+  [KycStepName.ONLINE_ID]: {
+    ident: KycDocument.INITIATE_ONLINE_IDENTIFICATION,
+    document: KycDocument.ONLINE_IDENTIFICATION,
+  },
+  [KycStepName.VIDEO_ID]: {
+    ident: KycDocument.INITIATE_VIDEO_IDENTIFICATION,
+    document: KycDocument.VIDEO_IDENTIFICATION,
+  },
+};
 
 export interface SubmitResponse {
   customerReference: string;
