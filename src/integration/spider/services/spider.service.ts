@@ -3,5 +3,5 @@ import { SpiderApiRegistry } from './spider-api.registry';
 
 @Injectable()
 export class SpiderService {
-  constructor(private readonly spiderApiRegistry: SpiderApiRegistry) {}
+  constructor(private readonly spiderRegistry: SpiderApiRegistry) {}
 }
