@@ -50,11 +50,17 @@ export class KycService {
 
   // --- SPIDER SYNC --- //
 
-  // TODO
+  async stepCompleted(user: User, kycStep: KycStep): Promise<void> {
+    user.completeStep(kycStep);
+  }
+
+  async stepFailed(user: User, kycStep: KycStep): Promise<void> {
+    user.failStep(kycStep);
+  }
 
   // --- HELPER METHODS --- //
   private async continueKycFor(user: User): Promise<UserInfoDto> {
-    if (user.kycSteps.every((s) => s.status !== KycStepStatus.IN_PROGRESS)) {
+    if (user.hasStepsInProgress()) {
       const lastStep = this.getLastStep(user);
       const nextStep =
         lastStep?.status === KycStepStatus.COMPLETED
