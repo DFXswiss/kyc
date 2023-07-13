@@ -90,4 +90,12 @@ export class User extends IEntity {
   get hasStepsInProgress(): boolean {
     return this.kycSteps.some((s) => s.status == KycStepStatus.IN_PROGRESS);
   }
+
+  get hasAllStepsCompleted(): boolean {
+    return this.kycSteps.every((s) => s.status == KycStepStatus.COMPLETED);
+  }
+
+  get isPersonal(): boolean {
+    return !this.accountType || this.accountType === AccountType.PERSONAL;
+  }
 }

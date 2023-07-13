@@ -20,6 +20,7 @@ export class KycStepMapper {
     const naSteps = KycService.getSteps(user)
       .filter((step) => !steps.some((s) => s.name === step))
       .map((s) => ({ name: s, status: KycStepStatus.NOT_STARTED }));
+
     return steps.concat(naSteps);
   }
 }

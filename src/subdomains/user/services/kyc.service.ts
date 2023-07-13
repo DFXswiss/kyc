@@ -1,20 +1,28 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { InitiateState, KycDocument, KycDocuments } from 'src/integration/spider/dto/spider.dto';
+import { Config } from 'src/config/config';
+import {
+  DocumentVersion,
+  InitiateState,
+  KycDocument,
+  KycDocumentState,
+  KycDocuments,
+} from 'src/integration/spider/dto/spider.dto';
 import { SpiderService } from 'src/integration/spider/services/spider.service';
 import { DfxLogger } from 'src/shared/services/dfx-logger';
+import { Util } from 'src/shared/utils/util';
 import { UserService } from 'src/subdomains/user/services/user.service';
 import { KycDataDto } from '../api/dto/user-in.dto';
 import { UserInfoDto } from '../api/dto/user-out.dto';
 import { KycStep } from '../entities/kyc-step.entity';
 import { User } from '../entities/user.entity';
 import { KycStepName, KycStepStatus } from '../enums/kyc.enum';
-import { AccountType } from '../enums/user.enum';
 
 @Injectable()
 export class KycService {
   private readonly logger = new DfxLogger(KycService);
-  private static readonly stepOrdersPerson = [KycStepName.USER_DATA, KycStepName.CHATBOT, KycStepName.ONLINE_ID];
 
+  private static readonly firstStep = KycStepName.USER_DATA;
+  private static readonly stepOrdersPerson = [KycStepName.USER_DATA, KycStepName.CHATBOT, KycStepName.ONLINE_ID];
   private static readonly stepOrdersBusiness = [
     KycStepName.USER_DATA,
     KycStepName.FILE_UPLOAD,
@@ -63,51 +71,77 @@ export class KycService {
 
     user.setIncorporationCertificate();
 
-    return this.userService.saveAndMap(user);
+    return this.continueKycFor(user);
   }
 
   // --- SPIDER SYNC --- //
 
-  async stepCompleted(user: User, kycStep: KycStep): Promise<void> {
-    user.completeStep(kycStep);
-  }
+  async syncKycUser(user: User): Promise<UserInfoDto> {
+    const stepsInProgress = user.kycSteps.filter(
+      (kycStep) =>
+        kycStep.name.includes[(KycStepName.CHATBOT, KycStepName.ONLINE_ID, KycStepName.VIDEO_ID)] &&
+        kycStep.status == KycStepStatus.IN_PROGRESS,
+    );
 
-  async stepFailed(user: User, kycStep: KycStep): Promise<void> {
-    user.failStep(kycStep);
-  }
+    for (const kycStep of stepsInProgress) {
+      try {
+        const kycDocumentVersion = await this.loadDocumentVersionFor(user, kycStep);
 
-  // --- HELPER METHODS --- //
-  private async continueKycFor(user: User): Promise<UserInfoDto> {
-    if (!user.hasStepsInProgress) {
-      const lastStep = this.getLastStep(user);
-      const nextStep =
-        lastStep?.status === KycStepStatus.COMPLETED
-          ? this.getStep(user, this.getStepOrder(user, lastStep) + 1)
-          : lastStep?.name ?? KycService.getSteps(user)[0];
-
-      if (nextStep) {
-        let sessionUrl;
-        let documentVersion;
-
-        const document = KycDocuments[nextStep];
-        if (document) {
-          const response = await this.spiderService.initiateKycDocumentVersion(user, document.ident);
-          if (response.state === InitiateState.INITIATED) {
-            sessionUrl = response.sessionUrl;
-            documentVersion = response.locators[0].version;
-          } else {
-            this.logger.error(`Error during initiation for ${nextStep} failed with state ${response.state}:`);
-            throw new ServiceUnavailableException(`Initiation for ${nextStep} failed with state ${response.state}`);
-          }
+        if (
+          !kycDocumentVersion ||
+          kycDocumentVersion.state == KycDocumentState.FAILED ||
+          this.documentAge(kycDocumentVersion) > Config.spider.failAfterDays
+        ) {
+          user.failStep(kycStep);
+        } else if (kycDocumentVersion.state == KycDocumentState.COMPLETED) {
+          user.completeStep(kycStep);
         }
-
-        user.nextStep(nextStep, documentVersion, sessionUrl);
-      } else {
-        user.kycCompleted();
+      } catch (e) {
+        this.logger.error(`Exception during KYC check for user ${user.id} in KYC step ${kycStep.id}:`, e);
       }
     }
 
     return this.userService.saveAndMap(user);
+  }
+
+  // --- HELPER METHODS --- //
+
+  // steps
+  private async continueKycFor(user: User): Promise<UserInfoDto> {
+    return user.hasStepsInProgress ? this.syncKycUser(user) : this.startNextStep(user);
+  }
+
+  private async startNextStep(user: User) {
+    const lastStep = this.getLastStep(user);
+    const nextStep =
+      lastStep?.status === KycStepStatus.COMPLETED
+        ? this.getStep(user, this.getStepOrder(user, lastStep) + 1)
+        : lastStep?.name ?? KycService.firstStep;
+
+    if (nextStep) {
+      const { sessionUrl, documentVersion } = await this.initiateStep(user, nextStep);
+      user.nextStep(nextStep, documentVersion, sessionUrl);
+    } else {
+      user.kycCompleted();
+    }
+
+    return this.userService.saveAndMap(user);
+  }
+
+  private async initiateStep(
+    user: User,
+    nextStep: KycStepName,
+  ): Promise<{ sessionUrl?: string; documentVersion?: string }> {
+    const document = KycDocuments[nextStep];
+    if (!document) return { sessionUrl: undefined, documentVersion: undefined };
+
+    const response = await this.spiderService.initiateKycDocumentVersion(user, document.ident);
+    if (response.state === InitiateState.INITIATED) {
+      return { sessionUrl: response.sessionUrl, documentVersion: response.locators[0].version };
+    } else {
+      this.logger.error(`Failed to initiate ${nextStep} for user ${user.id} (${response.state})`);
+      throw new ServiceUnavailableException(`Initiation for ${nextStep} failed with state ${response.state}`);
+    }
   }
 
   private getLastStep(user: User): KycStep | undefined {
@@ -129,6 +163,22 @@ export class KycService {
   }
 
   static getSteps(user: User): KycStepName[] {
-    return user.accountType === AccountType.PERSONAL ? this.stepOrdersPerson : this.stepOrdersBusiness;
+    return user.isPersonal ? this.stepOrdersPerson : this.stepOrdersBusiness;
+  }
+
+  // documents
+
+  private async loadDocumentVersionFor(user: User, kycStep: KycStep): Promise<DocumentVersion | undefined> {
+    const document = KycDocuments[kycStep.name].document;
+    const version = kycStep.documentVersion;
+
+    if (!document || !version)
+      throw new Error(`No matching document version for user ${user.id} and step ${kycStep.id}`);
+
+    return this.spiderService.getKycDocumentVersion(user, document, version);
+  }
+
+  private documentAge(version: DocumentVersion): number {
+    return Util.daysDiff(new Date(version.creationTime), new Date());
   }
 }
