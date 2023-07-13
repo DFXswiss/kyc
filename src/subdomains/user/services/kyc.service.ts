@@ -13,9 +13,9 @@ import { AccountType } from '../enums/user.enum';
 @Injectable()
 export class KycService {
   private readonly logger = new DfxLogger(KycService);
-  private readonly stepOrdersPerson = [KycStepName.USER_DATA, KycStepName.CHATBOT, KycStepName.ONLINE_ID];
+  private static readonly stepOrdersPerson = [KycStepName.USER_DATA, KycStepName.CHATBOT, KycStepName.ONLINE_ID];
 
-  private readonly stepOrdersBusiness = [
+  private static readonly stepOrdersBusiness = [
     KycStepName.USER_DATA,
     KycStepName.FILE_UPLOAD,
     KycStepName.CHATBOT,
@@ -83,7 +83,7 @@ export class KycService {
       const nextStep =
         lastStep?.status === KycStepStatus.COMPLETED
           ? this.getStep(user, this.getStepOrder(user, lastStep) + 1)
-          : lastStep?.name ?? this.getStepOrders(user)[0];
+          : lastStep?.name ?? KycService.getSteps(user)[0];
 
       if (nextStep) {
         let sessionUrl;
@@ -121,14 +121,14 @@ export class KycService {
   }
 
   private getStepOrder(user: User, step: KycStep): number {
-    return this.getStepOrders(user).indexOf(step.name);
+    return KycService.getSteps(user).indexOf(step.name);
   }
 
   private getStep(user: User, order: number): KycStepName | undefined {
-    return this.getStepOrders(user)[order];
+    return KycService.getSteps(user)[order];
   }
 
-  private getStepOrders(user: User): KycStepName[] {
+  static getSteps(user: User): KycStepName[] {
     return user.accountType === AccountType.PERSONAL ? this.stepOrdersPerson : this.stepOrdersBusiness;
   }
 }

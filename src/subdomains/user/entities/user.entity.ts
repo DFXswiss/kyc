@@ -20,7 +20,7 @@ export class User extends IEntity {
   @Column({ nullable: true })
   accountType: AccountType;
 
-  @Column({ default: KycStatus.NA })
+  @Column({ default: KycStatus.NOT_STARTED })
   kycStatus: KycStatus;
 
   @OneToMany(() => KycStep, (step) => step.user, { eager: true, cascade: true })

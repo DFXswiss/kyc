@@ -8,7 +8,7 @@ export class UserInfoMapper {
     const dto: UserInfoDto = {
       language: LanguageDtoMapper.entityToDto(user.language),
       kycStatus: user.kycStatus,
-      kycSteps: KycStepMapper.entitiesToDto(user.kycSteps),
+      kycSteps: KycStepMapper.entitiesToDto(user),
     };
 
     return Object.assign(new UserInfoDto(), dto);
