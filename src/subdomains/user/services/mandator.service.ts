@@ -15,6 +15,10 @@ export class MandatorService implements OnModuleInit {
     return this.repo.findOneBy({ reference });
   }
 
+  async getAll(): Promise<Mandator[]> {
+    return this.repo.find();
+  }
+
   // --- HELPER METHODS --- //
   private async initSpider() {
     const mandators = await this.repo.find();
