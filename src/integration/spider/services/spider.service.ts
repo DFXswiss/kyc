@@ -6,33 +6,82 @@ import { CountryDto } from 'src/subdomains/master-data/country/dto/country.dto';
 import { KycDataDto } from 'src/subdomains/user/api/dto/user-in.dto';
 import { KycStep } from 'src/subdomains/user/entities/kyc-step.entity';
 import { AccountType, User } from 'src/subdomains/user/entities/user.entity';
-import { Customer, DocumentVersion, KycDocuments, Organization, SubmitResponse } from '../dto/spider.dto';
+import {
+  Customer,
+  DocumentVersion,
+  KycContentType,
+  KycDocument,
+  KycDocumentState,
+  KycDocuments,
+  Organization,
+  SubmitResponse,
+} from '../dto/spider.dto';
 import { SpiderApiRegistry } from './spider-api.registry';
 
 @Injectable()
 export class SpiderService {
+  private readonly defaultDocumentPart = 'content';
+
   constructor(private readonly spiderRegistry: SpiderApiRegistry, private readonly countryService: CountryService) {}
 
   async createCustomer(user: User, data: KycDataDto): Promise<SubmitResponse> {
-    const apiService = this.spiderRegistry.get(user.mandator.reference);
+    const spiderApi = this.getApiService(user);
 
     const contract = this.contract(user.reference);
     const customer = await this.buildCustomer(user, data);
 
     if (data.accountType === AccountType.PERSONAL) {
-      return apiService.createPersonalCustomer(contract, customer);
+      return spiderApi.createPersonalCustomer(contract, customer);
     } else {
       const organization = await this.buildOrganization(user, data);
-      return apiService.createOrganizationCustomer(contract, customer, organization);
+      return spiderApi.createOrganizationCustomer(contract, customer, organization);
     }
   }
 
   async getKycDocumentVersion(user: User, kycStep: KycStep): Promise<DocumentVersion | undefined> {
     if (!kycStep.documentVersion) throw new Error(`No document version for user ${user.id} and step ${kycStep.id}`);
 
-    return this.spiderRegistry
-      .get(user.mandator.reference)
-      .getDocumentVersion(user.reference, KycDocuments[kycStep.name].document, kycStep.documentVersion);
+    return this.getApiService(user).getDocumentVersion(
+      this.reference(user.reference, false),
+      KycDocuments[kycStep.name].document,
+      kycStep.documentVersion,
+    );
+  }
+
+  async uploadDocument(
+    user: User,
+    document: KycDocument,
+    fileName: string,
+    contentType: KycContentType | string,
+    data: any,
+    version: string = Date.now().toString(),
+  ): Promise<boolean> {
+    const spiderApi = this.getApiService(user);
+
+    const reference = this.reference(user.reference, false);
+
+    await spiderApi.createDocumentVersion(reference, document, version);
+    await spiderApi.createDocumentVersionPart(
+      reference,
+      document,
+      version,
+      this.defaultDocumentPart,
+      fileName,
+      contentType,
+    );
+    let successful = await spiderApi.uploadDocument(
+      reference,
+      document,
+      version,
+      this.defaultDocumentPart,
+      contentType,
+      data,
+    );
+    if (successful) {
+      successful = await spiderApi.changeDocumentState(reference, document, version, KycDocumentState.COMPLETED);
+    }
+
+    return successful;
   }
 
   // --- HELPER METHODS --- //
@@ -100,5 +149,9 @@ export class SpiderService {
       throw new BadRequestException(`Country ${country.name} not allowed`);
 
     return countryEntity;
+  }
+
+  private getApiService(user: User) {
+    return this.spiderRegistry.get(user.mandator.reference);
   }
 }

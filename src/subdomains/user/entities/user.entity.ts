@@ -49,7 +49,14 @@ export class User extends IEntity {
     this.spiderReference = spiderReference;
     this.accountType = accountType;
 
-    const step = this.getStepOrThrow(KycStepName.USER_DATA);
+    const step = this.getPendingStepOrThrow(KycStepName.USER_DATA);
+    step.complete();
+
+    return this;
+  }
+
+  setIncorporationCertificate(): this {
+    const step = this.getPendingStepOrThrow(KycStepName.FILE_UPLOAD);
     step.complete();
 
     return this;
@@ -80,8 +87,8 @@ export class User extends IEntity {
   }
 
   // --- HELPERS --- //
-  private getStepOrThrow(name: KycStepName): KycStep {
-    const step = this.kycSteps.find((s) => s.name === name);
+  private getPendingStepOrThrow(name: KycStepName): KycStep {
+    const step = this.kycSteps.find((s) => s.name === name && s.status === KycStepStatus.IN_PROGRESS);
     if (!step) throw new Error(`Step ${name} not found for user ${this.id}`);
 
     return step;

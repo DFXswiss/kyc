@@ -1,3 +1,5 @@
+import { ServiceUnavailableException } from '@nestjs/common';
+import { KycDocument } from 'src/integration/spider/dto/spider.dto';
 import { SpiderService } from 'src/integration/spider/services/spider.service';
 import { UserService } from 'src/subdomains/user/services/user.service';
 import { KycDataDto } from '../api/dto/user-in.dto';
@@ -29,6 +31,7 @@ export class KycService {
 
     // create spider customer
     const { customerId } = await this.spiderService.createCustomer(user, data);
+    // TODO: set initial customer info
 
     user.setData(customerId, data.accountType);
 
@@ -42,8 +45,17 @@ export class KycService {
   ): Promise<UserInfoDto> {
     const user = await this.userService.getOrThrow(mandator, reference);
 
-    // TODO: update user
-    // TODO: update spider
+    const successful = await this.spiderService.uploadDocument(
+      user,
+      KycDocument.INCORPORATION_CERTIFICATE,
+      file.originalname,
+      file.mimetype,
+      file.buffer,
+    );
+
+    if (!successful) throw new ServiceUnavailableException('Failed to upload file');
+
+    user.setIncorporationCertificate();
 
     return this.userService.saveAndMap(user);
   }
