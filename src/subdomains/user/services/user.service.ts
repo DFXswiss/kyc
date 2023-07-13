@@ -37,7 +37,7 @@ export class UserService {
     return this.repo.findBy({ mandator: { reference: mandator }, reference: In(references) });
   }
 
-  async update(user: User): Promise<User> {
+  async save(user: User): Promise<User> {
     return this.repo.save(user);
   }
 
@@ -49,7 +49,7 @@ export class UserService {
   }
 
   async saveAndMap(user: User): Promise<UserInfoDto> {
-    user = await this.update(user);
+    user = await this.save(user);
 
     return UserInfoMapper.toDto(user);
   }

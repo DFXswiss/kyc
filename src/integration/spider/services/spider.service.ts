@@ -92,7 +92,7 @@ export class SpiderService {
     const customerInfo = this.buildInitialCustomerInfo(data);
     await this.uploadInitialInformation(user, false, customerInfo);
 
-    if (user.accountType !== AccountType.PERSONAL) {
+    if (data.accountType !== AccountType.PERSONAL) {
       // pre-fill organization info
       const organizationInfo = this.buildInitialOrganizationInfo(data);
       await this.uploadInitialInformation(user, true, organizationInfo);
