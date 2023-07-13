@@ -1,4 +1,5 @@
 import { IEntity } from 'src/shared/db/entity';
+import { Country } from 'src/subdomains/master-data/country/country.entity';
 import { Column, Generated } from 'typeorm';
 
 export class Mandator extends IEntity {
@@ -23,5 +24,9 @@ export class Mandator extends IEntity {
 
   get allowedCountryIds(): number[] {
     return this.allowedCountries.split(',').map((id) => +id);
+  }
+
+  isCountryAllowed(country: Country): boolean {
+    return this.allowedCountryIds.includes(country.id);
   }
 }

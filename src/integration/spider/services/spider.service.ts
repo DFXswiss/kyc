@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Config } from 'src/config/config';
+import { Country } from 'src/subdomains/master-data/country/country.entity';
 import { CountryService } from 'src/subdomains/master-data/country/country.service';
+import { CountryDto } from 'src/subdomains/master-data/country/dto/country.dto';
 import { KycDataDto } from 'src/subdomains/user/api/dto/user-in.dto';
 import { AccountType, User } from 'src/subdomains/user/entities/user.entity';
 import { Customer, Organization, SubmitResponse } from '../dto/spider.dto';
@@ -25,7 +27,7 @@ export class SpiderService {
   // --- HELPER METHODS --- //
   private async buildCustomer(user: User, data: KycDataDto): Promise<Partial<Customer>> {
     // check country
-    data.address.country = await this.countryService.getOrThrow(data.address.country.id);
+    data.address.country = await this.checkCountry(user, data.address.country);
 
     const language = Config.spider.languages.find((l) => l === user.language.symbol) ?? Config.defaultLanguage;
 
@@ -53,7 +55,7 @@ export class SpiderService {
 
   private async buildOrganization(user: User, data: KycDataDto): Promise<Partial<Organization>> {
     // check country
-    data.organizationAddress.country = await this.countryService.getOrThrow(data.organizationAddress.country.id);
+    data.organizationAddress.country = await this.checkCountry(user, data.organizationAddress.country);
 
     return {
       reference: this.reference(user.reference, true),
@@ -79,5 +81,13 @@ export class SpiderService {
 
   private contract(reference: string): string {
     return `${reference}_contract`;
+  }
+
+  private async checkCountry(user: User, country: CountryDto): Promise<Country> {
+    const countryEntity = await this.countryService.getOrThrow(country.id);
+    if (!user.mandator.isCountryAllowed(countryEntity))
+      throw new BadRequestException(`Country ${country.name} not allowed`);
+
+    return countryEntity;
   }
 }
