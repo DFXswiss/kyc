@@ -1,17 +1,18 @@
 import { IEntity } from 'src/shared/db/entity';
 import { Language } from 'src/subdomains/master-data/language/language.entity';
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, Index, ManyToOne, OneToMany } from 'typeorm';
 import { KycStepName, KycStepStatus } from '../enums/kyc.enum';
 import { AccountType, KycStatus } from '../enums/user.enum';
 import { KycStep } from './kyc-step.entity';
 import { Mandator } from './mandator.entity';
 
 @Entity()
+@Index((user: User) => [user.mandator, user.reference], { unique: true })
 export class User extends IEntity {
   @ManyToOne(() => Mandator, { nullable: false, eager: true })
   mandator: Mandator;
 
-  @Column({ unique: true })
+  @Column()
   reference: string;
 
   @Column({ type: 'integer', nullable: true })

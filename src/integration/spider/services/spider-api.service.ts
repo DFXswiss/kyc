@@ -338,7 +338,7 @@ export class SpiderApiService {
       if (nthTry > 1 && [403, 500].includes(e.response?.status)) {
         return this.request(url, method, data, contentType, responseType, nthTry - 1, e.response?.status === 403);
       }
-      throw e;
+      throw new Error(e);
     }
   }
 
