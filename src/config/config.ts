@@ -39,8 +39,9 @@ export class Configuration {
     },
   };
 
-  kyc = {
+  spider = {
     failAfterDays: 7,
+    languages: ['EN', 'DE', 'FR', 'IT'],
   };
 
   // --- HELPERS --- //

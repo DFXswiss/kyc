@@ -54,12 +54,9 @@ export class UserService {
   }
 
   async updateSettings(mandator: string, reference: string, settings: SettingsDto): Promise<UserInfoDto> {
-    const user = await this.get(mandator, reference);
-    if (!user) throw new NotFoundException('User not found');
+    const user = await this.getOrThrow(mandator, reference);
 
-    // check language
-    user.language = await this.languageService.get(settings.language.id);
-    if (!user.language) throw new NotFoundException('Language not found');
+    user.language = await this.languageService.getOrThrow(settings.language.id);
 
     return this.saveAndMap(user);
   }
@@ -69,6 +66,7 @@ export class UserService {
   private async createUser(mandator: string, reference: string): Promise<User> {
     const mandatorEntity = await this.mandatorService.get(mandator);
     const languageEntity = await this.languageService.getBySymbol(Config.defaultLanguage);
+
     return User.create(reference, mandatorEntity, languageEntity);
   }
 }

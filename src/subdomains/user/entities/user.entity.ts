@@ -1,8 +1,7 @@
 import { IEntity } from 'src/shared/db/entity';
 import { Language } from 'src/subdomains/master-data/language/language.entity';
-import { KycDataDto } from 'src/subdomains/user/api/dto/user-in.dto';
 import { Column, ManyToOne, OneToMany } from 'typeorm';
-import { KycStep } from './kyc-step.entity';
+import { KycStep, KycStepName } from './kyc-step.entity';
 import { Mandator } from './mandator.entity';
 
 export enum KycStatus {
@@ -46,7 +45,21 @@ export class User extends IEntity {
   }
 
   // --- KYC PROCESS --- //
-  setData(data: KycDataDto) {
-    // TODO: check KYC data (country!) + update steps + create new one
+  setData(spiderReference: number, accountType: AccountType): this {
+    this.spiderReference = spiderReference;
+    this.accountType = accountType;
+
+    const step = this.getStepOrThrow(KycStepName.USER_DATA);
+    step.complete();
+
+    return this;
+  }
+
+  // --- HELPERS --- //
+  private getStepOrThrow(name: KycStepName): KycStep {
+    const step = this.kycSteps.find((s) => s.name === name);
+    if (!step) throw new Error(`Step ${name} not found for user ${this.id}`);
+
+    return step;
   }
 }
