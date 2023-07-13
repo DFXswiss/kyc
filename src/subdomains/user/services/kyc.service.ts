@@ -36,7 +36,7 @@ export class KycService {
   async continueKyc(mandator: string, reference: string): Promise<UserInfoDto> {
     const user = await this.userService.getOrThrow(mandator, reference);
 
-    return this.continueKycFor(user);
+    return user.hasStepsInProgress ? this.syncKycUser(user) : this.startNextStep(user);
   }
 
   async updateKycData(mandator: string, reference: string, data: KycDataDto): Promise<UserInfoDto> {
@@ -52,7 +52,7 @@ export class KycService {
     user.setData(customerId, data.accountType);
     user.completeStep(step);
 
-    return this.continueKycFor(user);
+    return this.userService.saveAndMap(user);
   }
 
   async uploadIncorporationCertificate(
@@ -77,7 +77,7 @@ export class KycService {
 
     user.completeStep(step);
 
-    return this.continueKycFor(user);
+    return this.userService.saveAndMap(user);
   }
 
   // --- SPIDER SYNC --- //
@@ -113,10 +113,6 @@ export class KycService {
   // --- HELPER METHODS --- //
 
   // steps
-  private async continueKycFor(user: User): Promise<UserInfoDto> {
-    return user.hasStepsInProgress ? this.syncKycUser(user) : this.startNextStep(user);
-  }
-
   private async startNextStep(user: User) {
     const lastStep = this.getLastStep(user);
     const nextStep =
