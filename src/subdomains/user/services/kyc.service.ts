@@ -33,7 +33,7 @@ export class KycService {
 
     // create spider customer
     const { customerId } = await this.spiderService.createCustomer(user, data);
-    // TODO: set initial customer info
+    await this.spiderService.uploadInitialCustomerInfo(user, data);
 
     user.setData(customerId, data.accountType);
 
@@ -49,6 +49,7 @@ export class KycService {
 
     const successful = await this.spiderService.uploadDocument(
       user,
+      false,
       KycDocument.INCORPORATION_CERTIFICATE,
       file.originalname,
       file.mimetype,
