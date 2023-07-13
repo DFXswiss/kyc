@@ -3,8 +3,8 @@ import { SpiderModule } from './spider/spider.module';
 
 @Module({
   imports: [SpiderModule],
-  exports: [SpiderModule],
   controllers: [],
   providers: [],
+  exports: [SpiderModule],
 })
 export class IntegrationModule {}
