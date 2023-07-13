@@ -12,7 +12,4 @@ export class LanguageDto {
 
   @ApiProperty()
   foreignName: string;
-
-  @ApiProperty()
-  enable: boolean;
 }

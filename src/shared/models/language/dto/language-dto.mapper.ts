@@ -8,7 +8,6 @@ export class LanguageDtoMapper {
       name: language.name,
       symbol: language.symbol,
       foreignName: language.foreignName,
-      enable: language.enable,
     };
 
     return Object.assign(new LanguageDto(), dto);
