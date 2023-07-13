@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Config } from 'src/config/config';
 import { LanguageService } from 'src/subdomains/master-data/language/language.service';
+import { In } from 'typeorm';
 import { SettingsDto } from '../api/dto/user-in.dto';
 import { UserInfoDto } from '../api/dto/user-out.dto';
 import { UserInfoMapper } from '../api/mappers/user-info.mapper';
-import { User } from '../entities/user.entity';
+import { KycStatus, User } from '../entities/user.entity';
 import { UserRepository } from '../repositories/user.repository';
 import { MandatorService } from './mandator.service';
 
@@ -26,6 +27,13 @@ export class UserService {
     if (!user) throw new NotFoundException('User not found');
 
     return user;
+  }
+  async getInProgress(): Promise<User[]> {
+    return this.repo.findBy({ kycStatus: KycStatus.IN_PROGRESS });
+  }
+
+  async getByReferences(mandator: string, references: string[]): Promise<User[]> {
+    return this.repo.findBy({ mandator: { reference: mandator }, reference: In(references) });
   }
 
   async update(user: User): Promise<User> {

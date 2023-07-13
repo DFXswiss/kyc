@@ -39,6 +39,10 @@ export class Configuration {
     },
   };
 
+  kyc = {
+    failAfterDays: 7,
+  };
+
   // --- HELPERS --- //
 
   processDisabled = (processName: Process) =>
