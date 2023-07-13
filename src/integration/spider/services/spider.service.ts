@@ -27,7 +27,7 @@ export class SpiderService {
     }
   }
 
-  async getKycDocumentVersion(user: User, kycStep: KycStep): Promise<DocumentVersion | null> {
+  async getKycDocumentVersion(user: User, kycStep: KycStep): Promise<DocumentVersion | undefined> {
     if (!kycStep.documentVersion) throw new Error(`No document version for user ${user.id} and step ${kycStep.id}`);
 
     return this.spiderRegistry
