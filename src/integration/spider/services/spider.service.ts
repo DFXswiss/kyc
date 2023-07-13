@@ -47,6 +47,7 @@ export class SpiderService {
 
   async uploadDocument(
     user: User,
+    isOrganization: boolean,
     document: KycDocument,
     fileName: string,
     contentType: KycContentType | string,
@@ -55,7 +56,7 @@ export class SpiderService {
   ): Promise<boolean> {
     const spiderApi = this.getApiService(user);
 
-    const reference = this.reference(user.reference, false);
+    const reference = this.reference(user.reference, isOrganization);
 
     await spiderApi.createDocumentVersion(reference, document, version);
     await spiderApi.createDocumentVersionPart(
@@ -82,7 +83,19 @@ export class SpiderService {
   }
 
   async initiateKycDocumentVersion(user: User, kycDocument: KycDocument): Promise<InitiateResponse> {
-    return this.spiderRegistry.get(user.mandator.reference).initiateIdentification(user.reference, false, kycDocument);
+    return this.getApiService(user).initiateIdentification(user.reference, false, kycDocument);
+  }
+
+  async uploadInitialCustomerInfo(user: User, data: KycDataDto): Promise<void> {
+    // pre-fill customer info
+    const customerInfo = this.buildInitialCustomerInfo(data);
+    await this.uploadInitialInformation(user, false, customerInfo);
+
+    if (user.accountType !== AccountType.PERSONAL) {
+      // pre-fill organization info
+      const organizationInfo = this.buildInitialOrganizationInfo(data);
+      await this.uploadInitialInformation(user, true, organizationInfo);
+    }
   }
 
   // --- HELPER METHODS --- //
@@ -134,6 +147,35 @@ export class SpiderService {
         },
       ],
     };
+  }
+
+  private buildInitialCustomerInfo(data: KycDataDto): any {
+    return {
+      type: 'AdditionalPersonInformation',
+      nickName: data.firstName,
+    };
+  }
+
+  private buildInitialOrganizationInfo(data: KycDataDto): any {
+    return {
+      type:
+        data.accountType === AccountType.SOLE_PROPRIETORSHIP
+          ? 'AdditionalOrganisationInformation'
+          : 'AdditionalLegalEntityInformation',
+      organisationType: data.accountType === AccountType.SOLE_PROPRIETORSHIP ? 'SOLE_PROPRIETORSHIP' : 'LEGAL_ENTITY',
+    };
+  }
+
+  private uploadInitialInformation(user: User, isOrganization: boolean, info: any): Promise<boolean> {
+    return this.uploadDocument(
+      user,
+      isOrganization,
+      KycDocument.INITIAL_CUSTOMER_INFORMATION,
+      'initial-customer-information.json',
+      KycContentType.JSON,
+      info,
+      'v1',
+    );
   }
 
   private reference(reference: string, isOrganization: boolean): string {
