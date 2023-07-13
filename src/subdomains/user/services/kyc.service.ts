@@ -85,8 +85,8 @@ export class KycService {
   async syncKycUser(user: User): Promise<UserInfoDto> {
     const stepsInProgress = user.kycSteps.filter(
       (kycStep) =>
-        kycStep.name.includes[(KycStepName.CHATBOT, KycStepName.ONLINE_ID, KycStepName.VIDEO_ID)] &&
-        kycStep.status == KycStepStatus.IN_PROGRESS,
+        [KycStepName.CHATBOT, KycStepName.ONLINE_ID, KycStepName.VIDEO_ID].includes(kycStep.name) &&
+        kycStep.status === KycStepStatus.IN_PROGRESS,
     );
 
     for (const kycStep of stepsInProgress) {
@@ -121,8 +121,8 @@ export class KycService {
         : lastStep?.name ?? KycService.firstStep;
 
     if (nextStep) {
-      const { sessionUrl, documentVersion } = await this.initiateStep(user, nextStep);
-      user.nextStep(nextStep, documentVersion, sessionUrl);
+      const { documentVersion, sessionUrl, setupUrl, sessionId } = await this.initiateStep(user, nextStep);
+      user.nextStep(nextStep, documentVersion, sessionUrl, setupUrl, sessionId);
     } else {
       user.kycCompleted();
     }
@@ -133,13 +133,23 @@ export class KycService {
   private async initiateStep(
     user: User,
     nextStep: KycStepName,
-  ): Promise<{ sessionUrl?: string; documentVersion?: string }> {
+  ): Promise<{ sessionUrl?: string; documentVersion?: string; setupUrl?: string; sessionId?: string }> {
     const document = KycDocuments[nextStep];
-    if (!document) return { sessionUrl: undefined, documentVersion: undefined };
+    if (!document)
+      return { sessionUrl: undefined, documentVersion: undefined, setupUrl: undefined, sessionId: undefined };
 
     const response = await this.spiderService.initiateKycDocumentVersion(user, document.ident);
+
     if (response.state === InitiateState.INITIATED) {
-      return { sessionUrl: response.sessionUrl, documentVersion: response.locators[0].version };
+      const log = await this.spiderService.getOnlineIdLog(user, response.locators[0].version);
+      const sessionId = log?.identificationId;
+
+      return {
+        sessionUrl: response.sessionUrl,
+        documentVersion: response.locators[0].version,
+        sessionId,
+        setupUrl: sessionId ? this.spiderService.getOnlineIdUrl(sessionId) : undefined,
+      };
     } else {
       this.logger.error(`Failed to initiate ${nextStep} for user ${user.id} (${response.state})`);
       throw new ServiceUnavailableException(`Initiation for ${nextStep} failed with state ${response.state}`);
