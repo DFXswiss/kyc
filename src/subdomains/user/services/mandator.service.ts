@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { SpiderApiRegistry } from 'src/integration/spider/services/spider-api.registry';
 import { Mandator } from '../entities/mandator.entity';
 import { MandatorRepository } from '../repositories/mandator.repository';
@@ -13,6 +13,13 @@ export class MandatorService implements OnModuleInit {
 
   async get(reference: string): Promise<Mandator> {
     return this.repo.findOneBy({ reference });
+  }
+
+  async getOrThrow(reference: string): Promise<Mandator> {
+    const mandator = await this.get(reference);
+    if (!mandator) throw new NotFoundException('Mandator not found');
+
+    return mandator;
   }
 
   async getAll(): Promise<Mandator[]> {
