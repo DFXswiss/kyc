@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Config } from 'src/config/config';
 import { LanguageService } from 'src/subdomains/master-data/language/language.service';
 import { In } from 'typeorm';
-import { SettingsDto } from '../api/dto/user-in.dto';
 import { UserInfoMapper } from '../api/dto/user-info.mapper';
 import { UserInfoDto } from '../api/dto/user-out.dto';
 import { User } from '../entities/user.entity';
@@ -52,14 +51,6 @@ export class UserService {
     user = await this.save(user);
 
     return UserInfoMapper.toDto(user);
-  }
-
-  async updateSettings(mandator: string, reference: string, settings: SettingsDto): Promise<UserInfoDto> {
-    const user = await this.getOrThrow(mandator, reference);
-
-    user.language = await this.languageService.getOrThrow(settings.language.id);
-
-    return this.saveAndMap(user);
   }
 
   // --- HELPER METHODS --- //

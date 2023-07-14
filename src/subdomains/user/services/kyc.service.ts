@@ -10,8 +10,9 @@ import {
 import { SpiderService } from 'src/integration/spider/services/spider.service';
 import { DfxLogger } from 'src/shared/services/dfx-logger';
 import { Util } from 'src/shared/utils/util';
+import { LanguageService } from 'src/subdomains/master-data/language/language.service';
 import { UserService } from 'src/subdomains/user/services/user.service';
-import { KycDataDto } from '../api/dto/user-in.dto';
+import { KycDataDto, SettingsDto } from '../api/dto/user-in.dto';
 import { KycStepDto, UserInfoDto } from '../api/dto/user-out.dto';
 import { KycStep } from '../entities/kyc-step.entity';
 import { User } from '../entities/user.entity';
@@ -39,7 +40,11 @@ export class KycService {
     KycStepStatus.COMPLETED,
   ];
 
-  constructor(private readonly userService: UserService, private readonly spiderService: SpiderService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly spiderService: SpiderService,
+    private readonly languageService: LanguageService,
+  ) {}
 
   // --- USER API --- //
   async continueKyc(mandator: string, reference: string): Promise<UserInfoDto> {
@@ -61,6 +66,22 @@ export class KycService {
     user.setData(customerId, data.accountType);
     user.completeStep(step);
 
+    return this.updateProgress(user, false);
+  }
+
+  async updateSettings(mandator: string, reference: string, settings: SettingsDto): Promise<UserInfoDto> {
+    const user = await this.userService.getOrThrow(mandator, reference);
+
+    user.language = await this.languageService.getOrThrow(settings.language.id);
+
+    await this.spiderService.updateCustomer(user, settings.phone, settings.mail, settings.language.symbol);
+
+    if (settings.phone) {
+      const kycSteps = user.kycSteps.filter(
+        (s) => s.name == KycStepName.CHATBOT && s.status == KycStepStatus.IN_PROGRESS,
+      );
+      kycSteps.forEach((s) => s.fail());
+    }
     return this.updateProgress(user, false);
   }
 

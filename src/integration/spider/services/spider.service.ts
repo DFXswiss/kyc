@@ -39,6 +39,22 @@ export class SpiderService {
     }
   }
 
+  async updateCustomer(user: User, phone?: string, mail?: string, language?: string): Promise<void> {
+    const customer = await this.getApiService(user).getCustomer(user.reference);
+
+    if (customer) {
+      // remove empty names
+      customer.names = customer.names.filter((n) => n.firstName !== '' || n.lastName !== '');
+
+      // update
+      if (phone) customer.telephones = [phone.replace('+', '')];
+      if (mail) customer.emails = [mail];
+      if (language) customer.preferredLanguage = language.toLowerCase();
+
+      await this.getApiService(user).updateCustomer({ ...customer });
+    }
+  }
+
   async getKycDocumentVersion(
     user: User,
     document: KycDocument,

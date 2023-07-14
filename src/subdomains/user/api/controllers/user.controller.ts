@@ -35,7 +35,7 @@ export class UserController {
   @UseGuards(AuthGuard())
   @ApiOkResponse({ type: UserInfoDto })
   async updateUser(@GetJwt() { mandator, user }: JwtPayload, @Body() settings: SettingsDto): Promise<UserInfoDto> {
-    return this.userService.updateSettings(mandator, user, settings);
+    return this.kycService.updateSettings(mandator, user, settings);
   }
 
   @Get('countries')

@@ -18,11 +18,24 @@ import { LanguageDto } from 'src/subdomains/master-data/language/dto/language.dt
 import { AccountType } from '../../enums/user.enum';
 
 export class SettingsDto {
-  @ApiProperty({ type: EntityDto })
+  @ApiPropertyOptional({ type: EntityDto })
   @IsOptional()
   @ValidateNested()
   @Type(() => EntityDto)
   language: LanguageDto;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @IsEmail()
+  mail: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @IsPhone()
+  @Transform(Util.trim)
+  phone: string;
 }
 
 export class AddressDto {

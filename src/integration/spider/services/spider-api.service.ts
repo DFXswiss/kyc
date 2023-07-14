@@ -6,6 +6,7 @@ import {
   Challenge,
   CheckResponse,
   CheckResult,
+  CreateResponse,
   Customer,
   CustomerInformationResponse,
   DocumentInfo,
@@ -43,6 +44,10 @@ export class SpiderApiService {
 
   async getChangedCustomers(modificationTime: number): Promise<string[]> {
     return this.callApi<string[]>(`customers?modificationTime=${modificationTime}`).then((r) => r ?? []);
+  }
+
+  async updateCustomer(customer: Customer): Promise<CreateResponse | undefined> {
+    return this.callApi<CreateResponse>('customers/simple', 'POST', customer);
   }
 
   async createPersonalCustomer(contract: string, person: Partial<Customer>): Promise<SubmitResponse> {
