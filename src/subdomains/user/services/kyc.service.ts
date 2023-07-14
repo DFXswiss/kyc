@@ -12,10 +12,12 @@ import { DfxLogger } from 'src/shared/services/dfx-logger';
 import { Util } from 'src/shared/utils/util';
 import { UserService } from 'src/subdomains/user/services/user.service';
 import { KycDataDto } from '../api/dto/user-in.dto';
-import { UserInfoDto } from '../api/dto/user-out.dto';
+import { KycStepDto, UserInfoDto } from '../api/dto/user-out.dto';
 import { KycStep } from '../entities/kyc-step.entity';
 import { User } from '../entities/user.entity';
 import { KycStepName, KycStepStatus } from '../enums/kyc.enum';
+
+export type Step = KycStep | KycStepDto;
 
 @Injectable()
 export class KycService {
@@ -28,6 +30,13 @@ export class KycService {
     KycStepName.FILE_UPLOAD,
     KycStepName.CHATBOT,
     KycStepName.ONLINE_ID,
+  ];
+
+  private static readonly stepStatusOrder = [
+    KycStepStatus.FAILED,
+    KycStepStatus.NOT_STARTED,
+    KycStepStatus.IN_PROGRESS,
+    KycStepStatus.COMPLETED,
   ];
 
   constructor(private readonly userService: UserService, private readonly spiderService: SpiderService) {}
@@ -110,23 +119,23 @@ export class KycService {
     return this.updateProgress(user, false);
   }
 
-  // --- HELPER METHODS --- //
-
-  // steps
+  // --- STEPPING HELPER METHODS --- //
   private async updateProgress(user: User, shouldContinue: boolean) {
-    const lastStep = KycService.getLastStep(user);
-    const nextStep =
-      lastStep?.status === KycStepStatus.COMPLETED
-        ? KycService.getStep(user, KycService.getStepOrder(user, lastStep) + 1)
-        : lastStep?.name ?? KycService.firstStep;
+    if (!user.hasStepsInProgress) {
+      const lastStep = KycService.getLastStep(user);
+      const nextStep =
+        lastStep?.status === KycStepStatus.COMPLETED
+          ? KycService.getStep(user, KycService.getStepOrder(user, lastStep) + 1)
+          : lastStep?.name ?? KycService.firstStep;
 
-    if (!nextStep) {
-      // no more steps to do
-      user.kycCompleted();
-    } else if (shouldContinue) {
-      // continue with next step
-      const { documentVersion, sessionUrl, setupUrl, sessionId } = await this.initiateStep(user, nextStep);
-      user.nextStep(nextStep, documentVersion, sessionId, sessionUrl, setupUrl);
+      if (!nextStep) {
+        // no more steps to do
+        user.kycCompleted();
+      } else if (shouldContinue) {
+        // continue with next step
+        const { documentVersion, sessionUrl, setupUrl, sessionId } = await this.initiateStep(user, nextStep);
+        user.nextStep(nextStep, documentVersion, sessionId, sessionUrl, setupUrl);
+      }
     }
 
     return this.userService.saveAndMap(user);
@@ -150,29 +159,42 @@ export class KycService {
     return this.spiderService.getSessionData(user, response);
   }
 
-  static getLastStep(user: User): KycStep | undefined {
-    let lastStep = user.kycSteps[0];
-
-    for (const step of user.kycSteps) {
-      if (this.getStepOrder(user, step) > this.getStepOrder(user, lastStep)) lastStep = step;
-    }
-
-    return lastStep;
-  }
-
-  static getStepOrder(user: User, step: { name: KycStepName }): number {
-    return KycService.getSteps(user).indexOf(step.name);
-  }
-
-  static getStep(user: User, order: number): KycStepName | undefined {
-    return KycService.getSteps(user)[order];
+  private static getLastStep(user: User): KycStep {
+    const sortedSteps = KycService.sortSteps(user, user.kycSteps);
+    return sortedSteps[sortedSteps.length - 1];
   }
 
   static getSteps(user: User): KycStepName[] {
     return user.isPersonal ? this.stepOrdersPerson : this.stepOrdersBusiness;
   }
 
-  // documents
+  // sorting
+  static sortSteps<T extends Step>(user: User, steps: T[]): T[] {
+    return steps.sort((a, b) => {
+      const stepOrder = this.getStepOrder(user, a);
+      const lastStepOrder = this.getStepOrder(user, b);
+
+      if (stepOrder === lastStepOrder) {
+        return KycService.getStepStatusOrder(a) - KycService.getStepStatusOrder(b);
+      }
+
+      return stepOrder - lastStepOrder;
+    });
+  }
+
+  private static getStep(user: User, order: number): KycStepName | undefined {
+    return KycService.getSteps(user)[order];
+  }
+
+  private static getStepOrder(user: User, step: Step): number {
+    return KycService.getSteps(user).indexOf(step.name);
+  }
+
+  private static getStepStatusOrder(step: Step): number {
+    return KycService.stepStatusOrder.indexOf(step.status);
+  }
+
+  // --- DOCUMENT HELPER METHODS --- //
 
   private async loadDocumentVersionFor(user: User, kycStep: KycStep): Promise<DocumentVersion | undefined> {
     const document = KycDocuments[kycStep.name].document;
