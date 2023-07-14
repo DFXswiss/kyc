@@ -72,7 +72,9 @@ export class KycService {
   async updateSettings(mandator: string, reference: string, settings: SettingsDto): Promise<UserInfoDto> {
     const user = await this.userService.getOrThrow(mandator, reference);
 
-    user.language = await this.languageService.getOrThrow(settings.language.id);
+    if (settings.language) {
+      user.language = settings.language = await this.languageService.getOrThrow(settings.language.id);
+    }
 
     if (settings.phone) {
       // fail chatbot in progress

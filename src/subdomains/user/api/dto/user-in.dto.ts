@@ -22,20 +22,20 @@ export class SettingsDto {
   @IsOptional()
   @ValidateNested()
   @Type(() => EntityDto)
-  language: LanguageDto;
+  language?: LanguageDto;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @IsEmail()
-  mail: string;
+  mail?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @IsPhone()
   @Transform(Util.trim)
-  phone: string;
+  phone?: string;
 }
 
 export class AddressDto {
