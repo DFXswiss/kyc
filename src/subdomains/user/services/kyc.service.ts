@@ -36,7 +36,7 @@ export class KycService {
   async continueKyc(mandator: string, reference: string): Promise<UserInfoDto> {
     const user = await this.userService.getOrThrow(mandator, reference);
 
-    return user.hasStepsInProgress ? this.syncKycUser(user) : this.startNextStep(user);
+    return user.hasStepsInProgress ? this.syncKycUser(user) : this.updateProgress(user, true);
   }
 
   async updateKycData(mandator: string, reference: string, data: KycDataDto): Promise<UserInfoDto> {
@@ -52,7 +52,7 @@ export class KycService {
     user.setData(customerId, data.accountType);
     user.completeStep(step);
 
-    return this.userService.saveAndMap(user);
+    return this.updateProgress(user, false);
   }
 
   async uploadIncorporationCertificate(
@@ -77,7 +77,7 @@ export class KycService {
 
     user.completeStep(step);
 
-    return this.userService.saveAndMap(user);
+    return this.updateProgress(user, false);
   }
 
   // --- SPIDER SYNC --- //
@@ -107,24 +107,26 @@ export class KycService {
       }
     }
 
-    return this.userService.saveAndMap(user);
+    return this.updateProgress(user, false);
   }
 
   // --- HELPER METHODS --- //
 
   // steps
-  private async startNextStep(user: User) {
+  private async updateProgress(user: User, shouldContinue: boolean) {
     const lastStep = KycService.getLastStep(user);
     const nextStep =
       lastStep?.status === KycStepStatus.COMPLETED
         ? KycService.getStep(user, KycService.getStepOrder(user, lastStep) + 1)
         : lastStep?.name ?? KycService.firstStep;
 
-    if (nextStep) {
+    if (!nextStep) {
+      // no more steps to do
+      user.kycCompleted();
+    } else if (shouldContinue) {
+      // continue with next step
       const { documentVersion, sessionUrl, setupUrl, sessionId } = await this.initiateStep(user, nextStep);
       user.nextStep(nextStep, documentVersion, sessionId, sessionUrl, setupUrl);
-    } else {
-      user.kycCompleted();
     }
 
     return this.userService.saveAndMap(user);
