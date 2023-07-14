@@ -1,7 +1,7 @@
 import { ServiceUnavailableException } from '@nestjs/common';
-import { Method, ResponseType } from 'axios';
+import { AxiosError, Method, ResponseType } from 'axios';
 import { createHash } from 'crypto';
-import { HttpError, HttpService } from 'src/shared/services/http.service';
+import { HttpService } from 'src/shared/services/http.service';
 import {
   Challenge,
   CheckResponse,
@@ -308,12 +308,12 @@ export class SpiderApiService {
     contentType?: string,
     responseType?: ResponseType,
   ): Promise<T | undefined> {
-    return this.request<T>(url, method, data, contentType, responseType).catch((e: HttpError) => {
+    return this.request<T>(url, method, data, contentType, responseType).catch((e: AxiosError) => {
       if (e.response?.status === 404) {
         return undefined;
       }
 
-      throw new ServiceUnavailableException(e.response);
+      throw new ServiceUnavailableException(e.message);
     });
   }
 
@@ -343,7 +343,7 @@ export class SpiderApiService {
       if (nthTry > 1 && [403, 500].includes(e.response?.status)) {
         return this.request(url, method, data, contentType, responseType, nthTry - 1, e.response?.status === 403);
       }
-      throw new Error(e);
+      throw e;
     }
   }
 

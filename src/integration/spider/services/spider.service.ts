@@ -44,11 +44,12 @@ export class SpiderService {
 
     const customer = await spiderApi.getCustomer(this.reference(user.reference, false));
     if (customer) {
-      await spiderApi.updateCustomer({
+      const update = {
         ...customer,
         names: customer.names.filter((n) => n.firstName !== '' || n.lastName !== ''),
         ...this.buildSettings(settings),
-      });
+      };
+      await spiderApi.updateCustomer(update);
     }
   }
 
@@ -231,12 +232,12 @@ export class SpiderService {
   }
 
   private buildSettings(settings: SettingsDto): Partial<Customer> {
-    const language = Config.spider.languages.find((l) => l === settings.language.symbol) ?? Config.defaultLanguage;
+    const language = Config.spider.languages.find((l) => l === settings.language?.symbol) ?? Config.defaultLanguage;
 
     return {
-      emails: [settings.mail],
-      telephones: [settings.phone.replace('+', '')],
-      preferredLanguage: language.toLowerCase(),
+      ...(settings.mail ? { mails: [settings.mail] } : undefined),
+      ...(settings.phone ? { telephones: [settings.phone.replace('+', '')] } : undefined),
+      ...(settings.language ? { preferredLanguage: language.toLowerCase() } : undefined),
     };
   }
 
