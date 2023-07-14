@@ -23,6 +23,6 @@ export class KycStepMapper {
       .filter((step) => !steps.some((s) => s.name === step))
       .map((s) => ({ name: s, status: KycStepStatus.NOT_STARTED }));
 
-    return steps.concat(naSteps);
+    return steps.concat(naSteps).sort((a, b) => KycService.getStepOrder(user, a) - KycService.getStepOrder(user, b));
   }
 }

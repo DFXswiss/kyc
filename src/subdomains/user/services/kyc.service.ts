@@ -114,10 +114,10 @@ export class KycService {
 
   // steps
   private async startNextStep(user: User) {
-    const lastStep = this.getLastStep(user);
+    const lastStep = KycService.getLastStep(user);
     const nextStep =
       lastStep?.status === KycStepStatus.COMPLETED
-        ? this.getStep(user, this.getStepOrder(user, lastStep) + 1)
+        ? KycService.getStep(user, KycService.getStepOrder(user, lastStep) + 1)
         : lastStep?.name ?? KycService.firstStep;
 
     if (nextStep) {
@@ -148,7 +148,7 @@ export class KycService {
     return this.spiderService.getSessionData(user, response);
   }
 
-  private getLastStep(user: User): KycStep | undefined {
+  static getLastStep(user: User): KycStep | undefined {
     let lastStep = user.kycSteps[0];
 
     for (const step of user.kycSteps) {
@@ -158,11 +158,11 @@ export class KycService {
     return lastStep;
   }
 
-  private getStepOrder(user: User, step: KycStep): number {
+  static getStepOrder(user: User, step: { name: KycStepName }): number {
     return KycService.getSteps(user).indexOf(step.name);
   }
 
-  private getStep(user: User, order: number): KycStepName | undefined {
+  static getStep(user: User, order: number): KycStepName | undefined {
     return KycService.getSteps(user)[order];
   }
 
