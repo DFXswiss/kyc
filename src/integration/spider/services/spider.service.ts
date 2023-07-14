@@ -3,7 +3,7 @@ import { Config } from 'src/config/config';
 import { Country } from 'src/subdomains/master-data/country/country.entity';
 import { CountryService } from 'src/subdomains/master-data/country/country.service';
 import { CountryDto } from 'src/subdomains/master-data/country/dto/country.dto';
-import { KycDataDto } from 'src/subdomains/user/api/dto/user-in.dto';
+import { KycDataDto, SettingsDto } from 'src/subdomains/user/api/dto/user-in.dto';
 import { User } from 'src/subdomains/user/entities/user.entity';
 import { AccountType } from 'src/subdomains/user/enums/user.enum';
 import {
@@ -39,19 +39,16 @@ export class SpiderService {
     }
   }
 
-  async updateCustomer(user: User, phone?: string, mail?: string, language?: string): Promise<void> {
-    const customer = await this.getApiService(user).getCustomer(user.reference);
+  async updateCustomer(user: User, settings: SettingsDto): Promise<void> {
+    const spiderApi = this.getApiService(user);
 
+    const customer = await spiderApi.getCustomer(this.reference(user.reference, false));
     if (customer) {
-      // remove empty names
-      customer.names = customer.names.filter((n) => n.firstName !== '' || n.lastName !== '');
-
-      // update
-      if (phone) customer.telephones = [phone.replace('+', '')];
-      if (mail) customer.emails = [mail];
-      if (language) customer.preferredLanguage = language.toLowerCase();
-
-      await this.getApiService(user).updateCustomer({ ...customer });
+      await spiderApi.updateCustomer({
+        ...customer,
+        names: customer.names.filter((n) => n.firstName !== '' || n.lastName !== ''),
+        ...this.buildSettings(settings),
+      });
     }
   }
 
@@ -154,15 +151,11 @@ export class SpiderService {
     // check country
     data.address.country = await this.checkCountry(user, data.address.country);
 
-    const language = Config.spider.languages.find((l) => l === user.language.symbol) ?? Config.defaultLanguage;
-
     return {
       reference: this.reference(user.reference, false),
       type: 'PERSON',
       names: [{ firstName: data.firstName, lastName: data.lastName }],
       countriesOfResidence: [data.address.country.symbol],
-      emails: [data.mail],
-      telephones: [data.phone.replace('+', '')],
       structuredAddresses: [
         {
           type: 'BASIC',
@@ -173,8 +166,8 @@ export class SpiderService {
           countryCode: data.address.country.symbol,
         },
       ],
-      preferredLanguage: language.toLowerCase(),
       activationDate: { year: new Date().getFullYear(), month: new Date().getMonth() + 1, day: new Date().getDate() },
+      ...this.buildSettings({ ...data, language: user.language }),
     };
   }
 
@@ -235,6 +228,16 @@ export class SpiderService {
 
   private contract(reference: string): string {
     return `${reference}_contract`;
+  }
+
+  private buildSettings(settings: SettingsDto): Partial<Customer> {
+    const language = Config.spider.languages.find((l) => l === settings.language.symbol) ?? Config.defaultLanguage;
+
+    return {
+      emails: [settings.mail],
+      telephones: [settings.phone.replace('+', '')],
+      preferredLanguage: language.toLowerCase(),
+    };
   }
 
   private async checkCountry(user: User, country: CountryDto): Promise<Country> {

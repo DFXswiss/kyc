@@ -74,14 +74,14 @@ export class KycService {
 
     user.language = await this.languageService.getOrThrow(settings.language.id);
 
-    await this.spiderService.updateCustomer(user, settings.phone, settings.mail, settings.language.symbol);
-
     if (settings.phone) {
-      const kycSteps = user.kycSteps.filter(
-        (s) => s.name == KycStepName.CHATBOT && s.status == KycStepStatus.IN_PROGRESS,
-      );
-      kycSteps.forEach((s) => s.fail());
+      // fail chatbot in progress
+      const kycStep = user.getPendingStep(KycStepName.CHATBOT);
+      if (kycStep) user.failStep(kycStep);
     }
+
+    await this.spiderService.updateCustomer(user, settings);
+
     return this.updateProgress(user, false);
   }
 
