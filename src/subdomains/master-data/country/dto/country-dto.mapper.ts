@@ -13,6 +13,6 @@ export class CountryDtoMapper {
   }
 
   static entitiesToDto(countries: Country[]): CountryDto[] {
-    return countries.map(CountryDtoMapper.entityToDto);
+    return countries.map(CountryDtoMapper.entityToDto).sort((a, b) => (a.name > b.name ? 1 : -1));
   }
 }
