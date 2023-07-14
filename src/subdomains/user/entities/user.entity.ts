@@ -61,11 +61,11 @@ export class User extends IEntity {
   nextStep(
     kycStep: KycStepName,
     documentVersion?: string,
+    sessionId?: string,
     sessionUrl?: string,
     setupUrl?: string,
-    sessionId?: string,
   ): this {
-    this.kycSteps.push(KycStep.create(kycStep, this, documentVersion, sessionUrl, setupUrl, sessionId));
+    this.kycSteps.push(KycStep.create(kycStep, this, documentVersion, sessionId, sessionUrl, setupUrl));
     this.kycStatus = KycStatus.IN_PROGRESS;
 
     return this;

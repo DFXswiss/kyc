@@ -122,7 +122,7 @@ export class KycService {
 
     if (nextStep) {
       const { documentVersion, sessionUrl, setupUrl, sessionId } = await this.initiateStep(user, nextStep);
-      user.nextStep(nextStep, documentVersion, sessionUrl, setupUrl, sessionId);
+      user.nextStep(nextStep, documentVersion, sessionId, sessionUrl, setupUrl);
     } else {
       user.kycCompleted();
     }
@@ -133,27 +133,19 @@ export class KycService {
   private async initiateStep(
     user: User,
     nextStep: KycStepName,
-  ): Promise<{ sessionUrl?: string; documentVersion?: string; setupUrl?: string; sessionId?: string }> {
+  ): Promise<{ documentVersion?: string; sessionId?: string; sessionUrl?: string; setupUrl?: string }> {
     const document = KycDocuments[nextStep];
     if (!document)
       return { sessionUrl: undefined, documentVersion: undefined, setupUrl: undefined, sessionId: undefined };
 
-    const response = await this.spiderService.initiateKycDocumentVersion(user, document.ident);
+    const response = await this.spiderService.initiateKycDocument(user, document.ident);
 
-    if (response.state === InitiateState.INITIATED) {
-      const log = await this.spiderService.getOnlineIdLog(user, response.locators[0].version);
-      const sessionId = log?.identificationId;
-
-      return {
-        sessionUrl: response.sessionUrl,
-        documentVersion: response.locators[0].version,
-        sessionId,
-        setupUrl: sessionId ? this.spiderService.getOnlineIdUrl(sessionId) : undefined,
-      };
-    } else {
+    if (response.state !== InitiateState.INITIATED) {
       this.logger.error(`Failed to initiate ${nextStep} for user ${user.id} (${response.state})`);
       throw new ServiceUnavailableException(`Initiation for ${nextStep} failed with state ${response.state}`);
     }
+
+    return this.spiderService.getSessionData(user, response);
   }
 
   private getLastStep(user: User): KycStep | undefined {

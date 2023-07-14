@@ -84,8 +84,41 @@ export class SpiderService {
     return successful;
   }
 
-  async initiateKycDocumentVersion(user: User, kycDocument: KycDocument): Promise<InitiateResponse> {
-    return this.getApiService(user).initiateIdentification(user.reference, false, kycDocument);
+  async initiateKycDocument(user: User, document: KycDocument): Promise<InitiateResponse> {
+    return this.getApiService(user).initiateIdentification(this.reference(user.reference, false), false, document);
+  }
+
+  async getSessionData(
+    user: User,
+    response: InitiateResponse,
+  ): Promise<{ documentVersion?: string; sessionId?: string; sessionUrl?: string; setupUrl?: string }> {
+    const { version: documentVersion, document } = response.locators[0];
+
+    if ([KycDocument.ONLINE_IDENTIFICATION, KycDocument.VIDEO_IDENTIFICATION].includes(document)) {
+      const sessionId = await this.getApiService(user)
+        .getDocument<IdentificationLog>(
+          this.reference(user.reference, false),
+          document,
+          documentVersion,
+          KycDocument.IDENTIFICATION_LOG,
+        )
+        .then((l) => l?.identificationId);
+
+      return {
+        documentVersion,
+        sessionId,
+        sessionUrl:
+          document === KycDocument.ONLINE_IDENTIFICATION && sessionId
+            ? this.getOnlineIdUrl(sessionId)
+            : response.sessionUrl,
+        setupUrl: document === KycDocument.ONLINE_IDENTIFICATION ? response.sessionUrl : undefined,
+      };
+    }
+
+    return {
+      documentVersion,
+      sessionUrl: response.sessionUrl,
+    };
   }
 
   async uploadInitialCustomerInfo(user: User, data: KycDataDto): Promise<void> {
@@ -180,14 +213,6 @@ export class SpiderService {
     );
   }
 
-  async getOnlineIdLog(user: User, version: string): Promise<IdentificationLog | undefined> {
-    return this.getApiService(user).getDocument<IdentificationLog>(
-      user.reference,
-      KycDocument.ONLINE_IDENTIFICATION,
-      version,
-      KycDocument.IDENTIFICATION_LOG,
-    );
-  }
   private reference(reference: string, isOrganization: boolean): string {
     return isOrganization ? `${reference}_organization` : reference;
   }
@@ -204,11 +229,11 @@ export class SpiderService {
     return countryEntity;
   }
 
-  private getApiService(user: User) {
-    return this.spiderRegistry.get(user.mandator.reference);
+  private getOnlineIdUrl(identificationId: string): string {
+    return `https://go.${Config.spider.prefix}online-ident.ch/app/dfxauto/identifications/${identificationId}/identification/start`;
   }
 
-  getOnlineIdUrl(identificationId: string): string {
-    return `https://go.${Config.spider.prefix}online-ident.ch/app/dfxauto/identifications/${identificationId}/identification/start`;
+  private getApiService(user: User) {
+    return this.spiderRegistry.get(user.mandator.reference);
   }
 }
