@@ -78,8 +78,12 @@ export class User extends IEntity {
   }
 
   // --- HELPERS --- //
+  getPendingStep(name: KycStepName): KycStep | undefined {
+    return this.kycSteps.find((s) => s.name === name && s.status === KycStepStatus.IN_PROGRESS);
+  }
+
   getPendingStepOrThrow(name: KycStepName): KycStep {
-    const step = this.kycSteps.find((s) => s.name === name && s.status === KycStepStatus.IN_PROGRESS);
+    const step = this.getPendingStep(name);
     if (!step) throw new BadRequestException(`Step ${name} not in progress`);
 
     return step;
