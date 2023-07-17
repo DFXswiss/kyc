@@ -46,6 +46,7 @@
     "typeorm": "^0.3.12"
   },
   "devDependencies": {
+    "@golevelup/ts-jest": "^0.3.8",
     "@nestjs/cli": "^9.3.0",
     "@nestjs/schematics": "^9.0.4",
     "@nestjs/testing": "^9.3.12",
@@ -75,6 +76,9 @@
       "ts"
     ],
     "rootDir": "src",
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    },
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
