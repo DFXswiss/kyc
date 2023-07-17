@@ -42,7 +42,6 @@ export class Configuration {
   spider = {
     failAfterDays: 7,
     languages: ['EN', 'DE', 'FR', 'IT'],
-    prefix: process.env.KYC_PREFIX ?? '',
   };
 
   // --- HELPERS --- //
