@@ -279,7 +279,7 @@ export class Util {
     }
   }
 
-  static trim({ value }: TransformFnParams): string {
-    return value.split(' ').join('');
+  static trim({ value }: TransformFnParams): string | undefined {
+    return value?.split(' ').join('');
   }
 }
