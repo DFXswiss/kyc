@@ -1,5 +1,5 @@
 {
-  "cSpell.words": ["appinsights", "instrumentationkey", "nestjs", "organisation", "typeorm"],
+  "cSpell.words": ["appinsights", "incorp", "instrumentationkey", "nestjs", "organisation", "typeorm"],
   "prettier.printWidth": 120,
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {

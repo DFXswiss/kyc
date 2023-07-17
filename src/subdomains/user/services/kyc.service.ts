@@ -25,10 +25,10 @@ export class KycService {
   private readonly logger = new DfxLogger(KycService);
 
   private static readonly firstStep = KycStepName.USER_DATA;
-  private static readonly stepOrdersPerson = [KycStepName.USER_DATA, KycStepName.CHATBOT, KycStepName.ONLINE_ID];
-  private static readonly stepOrdersBusiness = [
+  private static readonly personSteps = [KycStepName.USER_DATA, KycStepName.CHATBOT, KycStepName.ONLINE_ID];
+  private static readonly businessSteps = [
     KycStepName.USER_DATA,
-    KycStepName.FILE_UPLOAD,
+    KycStepName.INCORP_CERT,
     KycStepName.CHATBOT,
     KycStepName.ONLINE_ID,
   ];
@@ -94,7 +94,7 @@ export class KycService {
   ): Promise<UserInfoDto> {
     const user = await this.userService.getOrThrow(mandator, reference);
 
-    const step = user.getPendingStepOrThrow(KycStepName.FILE_UPLOAD);
+    const step = user.getPendingStepOrThrow(KycStepName.INCORP_CERT);
 
     const successful = await this.spiderService.uploadDocument(
       user,
@@ -148,7 +148,7 @@ export class KycService {
       const lastStep = KycService.getLastStep(user);
       const nextStep =
         lastStep?.status === KycStepStatus.COMPLETED
-          ? KycService.getStep(user, KycService.getStepOrder(user, lastStep) + 1)
+          ? KycService.getStep(user, KycService.getStepIndex(user, lastStep) + 1)
           : lastStep?.name ?? KycService.firstStep;
 
       if (!nextStep) {
@@ -169,8 +169,10 @@ export class KycService {
     nextStep: KycStepName,
   ): Promise<{ documentVersion?: string; sessionId?: string; sessionUrl?: string; setupUrl?: string }> {
     const document = KycDocuments[nextStep];
-    if (!document)
+    if (!document) {
+      // no initialization required
       return { sessionUrl: undefined, documentVersion: undefined, setupUrl: undefined, sessionId: undefined };
+    }
 
     const response = await this.spiderService.initiateKycDocument(user, document.ident);
 
@@ -188,32 +190,32 @@ export class KycService {
   }
 
   static getSteps(user: User): KycStepName[] {
-    return user.isPersonal ? this.stepOrdersPerson : this.stepOrdersBusiness;
+    return user.isPersonal ? this.personSteps : this.businessSteps;
   }
 
   // sorting
   static sortSteps<T extends Step>(user: User, steps: T[]): T[] {
     return steps.sort((a, b) => {
-      const stepOrder = this.getStepOrder(user, a);
-      const lastStepOrder = this.getStepOrder(user, b);
+      const indexA = this.getStepIndex(user, a);
+      const indexB = this.getStepIndex(user, b);
 
-      if (stepOrder === lastStepOrder) {
-        return KycService.getStepStatusOrder(a) - KycService.getStepStatusOrder(b);
+      if (indexA === indexB) {
+        return KycService.getStepStatusIndex(a) - KycService.getStepStatusIndex(b);
       }
 
-      return stepOrder - lastStepOrder;
+      return indexA - indexB;
     });
   }
 
-  private static getStep(user: User, order: number): KycStepName | undefined {
-    return KycService.getSteps(user)[order];
+  private static getStep(user: User, index: number): KycStepName | undefined {
+    return KycService.getSteps(user)[index];
   }
 
-  private static getStepOrder(user: User, step: Step): number {
+  private static getStepIndex(user: User, step: Step): number {
     return KycService.getSteps(user).indexOf(step.name);
   }
 
-  private static getStepStatusOrder(step: Step): number {
+  private static getStepStatusIndex(step: Step): number {
     return KycService.stepStatusOrder.indexOf(step.status);
   }
 

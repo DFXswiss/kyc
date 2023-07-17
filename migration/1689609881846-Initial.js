@@ -1,7 +1,7 @@
 const { MigrationInterface, QueryRunner } = require('typeorm');
 
-module.exports = class Initial1689595023782 {
-  name = 'Initial1689595023782';
+module.exports = class Initial1689609881846 {
+  name = 'Initial1689609881846';
 
   async up(queryRunner) {
     await queryRunner.query(
@@ -14,10 +14,10 @@ module.exports = class Initial1689595023782 {
       `CREATE TABLE "setting" ("key" nvarchar(255) NOT NULL, "value" nvarchar(MAX) NOT NULL, CONSTRAINT "PK_1c4c95d773004250c157a744d6e" PRIMARY KEY ("key"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "mandator" ("id" int NOT NULL IDENTITY(1,1), "created" datetime2 NOT NULL CONSTRAINT "DF_72c18a2faa03dfaba08e56a1998" DEFAULT getdate(), "updated" datetime2 NOT NULL CONSTRAINT "DF_b806307036a15a2613c2ef5f1fa" DEFAULT getdate(), "reference" uniqueidentifier NOT NULL CONSTRAINT "DF_6a130b96aa22605f8ca88bf2a0d" DEFAULT NEWSEQUENTIALID(), "name" nvarchar(255) NOT NULL, "mandator" nvarchar(255) NOT NULL, "user" nvarchar(255) NOT NULL, "password" nvarchar(255) NOT NULL, "identUrl" nvarchar(255), "allowedCountries" nvarchar(MAX) NOT NULL, CONSTRAINT "UQ_6a130b96aa22605f8ca88bf2a0d" UNIQUE ("reference"), CONSTRAINT "PK_4cd13d6e68d0d5b96e12ee1a09f" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "mandator" ("id" int NOT NULL IDENTITY(1,1), "created" datetime2 NOT NULL CONSTRAINT "DF_72c18a2faa03dfaba08e56a1998" DEFAULT getdate(), "updated" datetime2 NOT NULL CONSTRAINT "DF_b806307036a15a2613c2ef5f1fa" DEFAULT getdate(), "reference" uniqueidentifier NOT NULL CONSTRAINT "DF_6a130b96aa22605f8ca88bf2a0d" DEFAULT NEWSEQUENTIALID(), "name" nvarchar(255) NOT NULL, "mandator" nvarchar(255) NOT NULL, "user" nvarchar(255) NOT NULL, "password" nvarchar(255) NOT NULL, "identUrl" nvarchar(255), "allowedCountries" nvarchar(MAX), CONSTRAINT "UQ_6a130b96aa22605f8ca88bf2a0d" UNIQUE ("reference"), CONSTRAINT "PK_4cd13d6e68d0d5b96e12ee1a09f" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "user" ("id" int NOT NULL IDENTITY(1,1), "created" datetime2 NOT NULL CONSTRAINT "DF_8ce4c93ba419b56bd82e533724d" DEFAULT getdate(), "updated" datetime2 NOT NULL CONSTRAINT "DF_5904a9d40152f354e4c7b0202fb" DEFAULT getdate(), "reference" nvarchar(255) NOT NULL, "spiderReference" int, "accountType" nvarchar(255), "kycStatus" nvarchar(255) NOT NULL CONSTRAINT "DF_fd8b11316c584a7f4b9c7a0af9f" DEFAULT 'NotStarted', "mandatorId" int NOT NULL, "languageId" int, CONSTRAINT "PK_cace4a159ff9f2512dd42373760" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "user" ("id" int NOT NULL IDENTITY(1,1), "created" datetime2 NOT NULL CONSTRAINT "DF_8ce4c93ba419b56bd82e533724d" DEFAULT getdate(), "updated" datetime2 NOT NULL CONSTRAINT "DF_5904a9d40152f354e4c7b0202fb" DEFAULT getdate(), "reference" nvarchar(255) NOT NULL, "spiderReference" int, "accountType" nvarchar(255), "kycStatus" nvarchar(255) NOT NULL CONSTRAINT "DF_fd8b11316c584a7f4b9c7a0af9f" DEFAULT 'NotStarted', "mandatorId" int NOT NULL, "languageId" int NOT NULL, CONSTRAINT "PK_cace4a159ff9f2512dd42373760" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE UNIQUE INDEX "IDX_79bf06d31afefc853cbc545490" ON "user" ("mandatorId", "reference") `,

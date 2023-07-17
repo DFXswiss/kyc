@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Config, Process } from 'src/config/config';
 import { SpiderApiRegistry } from 'src/integration/spider/services/spider-api.registry';
+import { DfxLogger } from 'src/shared/services/dfx-logger';
 import { Lock } from 'src/shared/utils/lock';
 import { Util } from 'src/shared/utils/util';
 import { SettingService } from 'src/subdomains/master-data/setting/setting.service';
@@ -12,6 +13,8 @@ import { UserService } from './user.service';
 
 @Injectable()
 export class KycSyncService {
+  private readonly logger = new DfxLogger(KycSyncService);
+
   constructor(
     private readonly userService: UserService,
     private readonly spiderApiRegistry: SpiderApiRegistry,
@@ -35,10 +38,11 @@ export class KycSyncService {
     if (Config.processDisabled(Process.SPIDER_SYNC)) return;
 
     const settingKey = 'spiderModificationDate';
-    const lastModificationTime = await this.settingService.get(settingKey);
+
+    const lastModificationTime = await this.settingService.get(settingKey, '0');
     const newModificationTime = Date.now().toString();
 
-    await this.syncKycData(+(lastModificationTime ?? 0));
+    await this.syncKycData(+lastModificationTime);
 
     await this.settingService.set(settingKey, newModificationTime);
   }
@@ -56,9 +60,14 @@ export class KycSyncService {
     const mandators = await this.mandatorService.getAll();
 
     for (const mandator of mandators) {
-      const changedRefs = await this.spiderApiRegistry.get(mandator.reference).getChangedCustomers(modificationTime);
-      const changedUsers = await this.userService.getByReferences(mandator.reference, changedRefs);
-      await this.syncKycUsers(changedUsers);
+      try {
+        const changedRefs = await this.spiderApiRegistry.get(mandator.reference).getChangedCustomers(modificationTime);
+        const changedUsers = await this.userService.getMany(mandator.reference, changedRefs);
+
+        await this.syncKycUsers(changedUsers);
+      } catch (e) {
+        this.logger.error(`Failed to synchronize for mandator ${mandator.id}:`, e);
+      }
     }
   }
 

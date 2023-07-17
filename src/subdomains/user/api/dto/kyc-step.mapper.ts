@@ -19,6 +19,8 @@ export class KycStepMapper {
 
   static entitiesToDto(user: User): KycStepDto[] {
     const steps = user.kycSteps.map(KycStepMapper.entityToDto);
+
+    // add open steps
     const naSteps = KycService.getSteps(user)
       .filter((step) => !steps.some((s) => s.name === step))
       .map((s) => ({ name: s, status: KycStepStatus.NOT_STARTED }));
