@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { IEntity } from 'src/shared/db/entity';
+import { DfxLogger } from 'src/shared/services/dfx-logger';
 import { Language } from 'src/subdomains/master-data/language/language.entity';
 import { Column, Entity, Index, ManyToOne, OneToMany } from 'typeorm';
 import { KycStepName, KycStepStatus } from '../enums/kyc.enum';
@@ -10,6 +11,8 @@ import { Mandator } from './mandator.entity';
 @Entity()
 @Index((u: User) => [u.mandator, u.reference], { unique: true })
 export class User extends IEntity {
+  private readonly logger = new DfxLogger(User);
+
   @ManyToOne(() => Mandator, { nullable: false, eager: true })
   mandator: Mandator;
 
@@ -47,6 +50,8 @@ export class User extends IEntity {
   completeStep(kycStep: KycStep): this {
     kycStep.complete();
 
+    this.logger.verbose(`User ${this.id} completes step ${kycStep.name} (${kycStep.id})`);
+
     return this;
   }
 
@@ -54,6 +59,8 @@ export class User extends IEntity {
     kycStep.fail();
 
     if (!this.hasStepsInProgress) this.kycStatus == KycStatus.PAUSED;
+
+    this.logger.verbose(`User ${this.id} fails step ${kycStep.name} (${kycStep.id})`);
 
     return this;
   }
@@ -68,11 +75,15 @@ export class User extends IEntity {
     this.kycSteps.push(KycStep.create(kycStep, this, documentVersion, sessionId, sessionUrl, setupUrl));
     this.kycStatus = KycStatus.IN_PROGRESS;
 
+    this.logger.verbose(`User ${this.id} starts step ${kycStep}`);
+
     return this;
   }
 
   kycCompleted(): this {
     this.kycStatus = KycStatus.COMPLETED;
+
+    this.logger.verbose(`User ${this.id} completes`);
 
     return this;
   }

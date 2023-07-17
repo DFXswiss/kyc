@@ -21,8 +21,11 @@ export class SettingService {
     await this.settingRepo.save({ key, value });
   }
 
+  getObj<T>(key: string): Promise<T | undefined>;
+  getObj<T>(key: string, defaultValue: T): Promise<T>;
+
   async getObj<T>(key: string, defaultValue?: T): Promise<T | undefined> {
-    return this.settingRepo.findOneBy({ key }).then((d) => (d?.value ? JSON.parse(d?.value) : defaultValue));
+    return this.settingRepo.findOneBy({ key }).then((d) => (d?.value ? JSON.parse(d.value) : defaultValue));
   }
 
   async setObj<T>(key: string, value: T): Promise<void> {
