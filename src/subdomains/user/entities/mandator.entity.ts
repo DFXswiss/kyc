@@ -20,6 +20,9 @@ export class Mandator extends IEntity {
   @Column()
   password: string;
 
+  @Column({ nullable: true })
+  identUrl?: string;
+
   @Column({ length: 'MAX' })
   allowedCountries: string;
 

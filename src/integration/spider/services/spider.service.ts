@@ -4,6 +4,7 @@ import { Country } from 'src/subdomains/master-data/country/country.entity';
 import { CountryService } from 'src/subdomains/master-data/country/country.service';
 import { CountryDto } from 'src/subdomains/master-data/country/dto/country.dto';
 import { KycDataDto, SettingsDto } from 'src/subdomains/user/api/dto/user-in.dto';
+import { Mandator } from 'src/subdomains/user/entities/mandator.entity';
 import { User } from 'src/subdomains/user/entities/user.entity';
 import { AccountType } from 'src/subdomains/user/enums/user.enum';
 import {
@@ -123,7 +124,7 @@ export class SpiderService {
         sessionId,
         sessionUrl:
           document === KycDocument.ONLINE_IDENTIFICATION && sessionId
-            ? this.getOnlineIdUrl(sessionId)
+            ? this.getOnlineIdUrl(user.mandator, sessionId)
             : response.sessionUrl,
         setupUrl: document === KycDocument.ONLINE_IDENTIFICATION ? response.sessionUrl : undefined,
       };
@@ -253,8 +254,9 @@ export class SpiderService {
     return countryEntity;
   }
 
-  private getOnlineIdUrl(identificationId: string): string {
-    return `https://go.${Config.spider.prefix}online-ident.ch/app/dfxauto/identifications/${identificationId}/identification/start`;
+  private getOnlineIdUrl(mandator: Mandator, identificationId: string): string {
+    const baseUrl = mandator.identUrl ?? 'https://go.online-ident.ch/app/kycspiderauto/identifications';
+    return `${baseUrl}/${identificationId}/identification/start`;
   }
 
   private getApiService(user: User) {
