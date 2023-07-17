@@ -167,7 +167,11 @@ export class SpiderService {
           countryCode: data.address.country.symbol,
         },
       ],
-      activationDate: { year: new Date().getFullYear(), month: new Date().getMonth() + 1, day: new Date().getDate() },
+      activationDate: {
+        year: user.created.getFullYear(),
+        month: user.created.getMonth() + 1,
+        day: user.created.getDate(),
+      },
       ...this.buildSettings({ ...data, language: user.language }),
     };
   }
@@ -235,7 +239,7 @@ export class SpiderService {
     const language = Config.spider.languages.find((l) => l === settings.language?.symbol) ?? Config.defaultLanguage;
 
     return {
-      ...(settings.mail ? { mails: [settings.mail] } : undefined),
+      ...(settings.mail ? { emails: [settings.mail] } : undefined),
       ...(settings.phone ? { telephones: [settings.phone.replace('+', '')] } : undefined),
       ...(settings.language ? { preferredLanguage: language.toLowerCase() } : undefined),
     };
