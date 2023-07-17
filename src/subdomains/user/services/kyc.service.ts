@@ -46,7 +46,6 @@ export class KycService {
     private readonly languageService: LanguageService,
   ) {}
 
-  // --- USER API --- //
   async continueKyc(mandator: string, reference: string): Promise<UserInfoDto> {
     const user = await this.userService.getOrThrow(mandator, reference);
 
@@ -111,8 +110,6 @@ export class KycService {
 
     return this.updateProgress(user, false);
   }
-
-  // --- SPIDER SYNC --- //
 
   async syncKycUser(user: User): Promise<UserInfoDto> {
     const stepsInProgress = user.kycSteps.filter(
