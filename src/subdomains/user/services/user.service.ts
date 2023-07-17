@@ -28,12 +28,13 @@ export class UserService {
 
     return user;
   }
-  async getInProgress(): Promise<User[]> {
-    return this.repo.findBy({ kycStatus: KycStatus.IN_PROGRESS });
+
+  async getMany(mandator: string, references: string[]): Promise<User[]> {
+    return this.repo.findBy({ mandator: { reference: mandator }, reference: In(references) });
   }
 
-  async getByReferences(mandator: string, references: string[]): Promise<User[]> {
-    return this.repo.findBy({ mandator: { reference: mandator }, reference: In(references) });
+  async getInProgress(): Promise<User[]> {
+    return this.repo.findBy({ kycStatus: KycStatus.IN_PROGRESS });
   }
 
   async save(user: User): Promise<User> {

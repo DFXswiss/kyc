@@ -10,6 +10,9 @@ export class SettingService {
     return this.settingRepo.find();
   }
 
+  get(key: string): Promise<string | undefined>;
+  get(key: string, defaultValue: string): Promise<string>;
+
   async get(key: string, defaultValue?: string): Promise<string | undefined> {
     return this.settingRepo.findOneBy({ key }).then((d) => d?.value ?? defaultValue);
   }

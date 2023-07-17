@@ -11,6 +11,7 @@ export class Mandator extends IEntity {
   @Column()
   name: string;
 
+  // Spider credentials
   @Column()
   mandator: string;
 
@@ -20,17 +21,18 @@ export class Mandator extends IEntity {
   @Column()
   password: string;
 
+  // settings
   @Column({ nullable: true })
   identUrl?: string;
 
-  @Column({ length: 'MAX' })
-  allowedCountries: string;
+  @Column({ nullable: true, length: 'MAX' })
+  allowedCountries?: string;
 
-  get allowedCountryIds(): number[] {
-    return this.allowedCountries.split(',').map((id) => +id);
+  private get allowedCountryIds(): number[] | undefined {
+    return this.allowedCountries?.split(',').map((id) => +id);
   }
 
   isCountryAllowed(country: Country): boolean {
-    return this.allowedCountryIds.includes(country.id);
+    return !this.allowedCountryIds || this.allowedCountryIds.includes(country.id);
   }
 }

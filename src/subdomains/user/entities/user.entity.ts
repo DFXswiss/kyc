@@ -28,7 +28,7 @@ export class User extends IEntity {
   @OneToMany(() => KycStep, (step) => step.user, { eager: true, cascade: true })
   kycSteps: KycStep[];
 
-  @ManyToOne(() => Language, { eager: true })
+  @ManyToOne(() => Language, { nullable: false, eager: true })
   language: Language;
 
   // --- FACTORY --- //

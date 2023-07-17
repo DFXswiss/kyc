@@ -1,6 +1,6 @@
 export enum KycStepName {
   USER_DATA = 'UserData',
-  FILE_UPLOAD = 'FileUpload',
+  INCORP_CERT = 'IncorpCert',
   CHATBOT = 'Chatbot',
   ONLINE_ID = 'OnlineId',
   VIDEO_ID = 'VideoId',
