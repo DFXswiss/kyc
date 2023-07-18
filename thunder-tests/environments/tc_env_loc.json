@@ -1,0 +1,18 @@
+{
+    "_id": "3628328b-582b-4dbd-98c3-fd6c21722812",
+    "name": "loc",
+    "default": true,
+    "sortNum": 10000,
+    "created": "2022-09-16T14:51:53.293Z",
+    "modified": "2022-09-16T14:52:34.096Z",
+    "data": [
+        {
+            "name": "url",
+            "value": "localhost:3000"
+        },
+        {
+            "name": "token",
+            "value": ""
+        }
+    ]
+}

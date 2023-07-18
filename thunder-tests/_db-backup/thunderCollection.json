@@ -1,0 +1,17 @@
+[
+  {
+    "_id": "42e25591-d14f-4269-8ed7-8b3106cf8395",
+    "colName": "DFX KYC",
+    "created": "2022-09-14T14:32:43.614Z",
+    "sortNum": 10000,
+    "folders": [],
+    "settings": {
+      "headers": [],
+      "auth": {
+        "type": "bearer",
+        "bearer": "{{token}}"
+      },
+      "tests": []
+    }
+  }
+]
