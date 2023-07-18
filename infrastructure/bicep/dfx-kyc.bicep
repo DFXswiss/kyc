@@ -228,6 +228,10 @@ resource apiAppService 'Microsoft.Web/sites@2018-11-01' = if (env != 'loc') {
           name: 'SQL_MIGRATE'
           value: 'true'
         }
+        {
+          name: 'WEBSITE_RUN_FROM_PACKAGE'
+          value: '1'
+        }
       ]
     }
   }
