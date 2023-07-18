@@ -58,7 +58,7 @@ export class User extends IEntity {
   failStep(kycStep: KycStep): this {
     kycStep.fail();
 
-    if (!this.hasStepsInProgress) this.kycStatus == KycStatus.PAUSED;
+    if (!this.hasStepsInProgress) this.kycStatus = KycStatus.PAUSED;
 
     this.logger.verbose(`User ${this.id} fails step ${kycStep.name} (${kycStep.id})`);
 

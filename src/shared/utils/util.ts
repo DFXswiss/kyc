@@ -246,8 +246,10 @@ export class Util {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  static removeNullFields(entity: any): void {
+  static removeNullFields<T extends object>(entity: T): T {
     Object.keys(entity).forEach((k) => entity[k] == null && delete entity[k]);
+
+    return entity;
   }
 
   static createHash(
